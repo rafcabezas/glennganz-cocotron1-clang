@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <stdbool.h>
 
 COREGRAPHICS_EXPORT const CGRect CGRectZero;
+COREGRAPHICS_EXPORT const CGRect CGRectNull;
 COREGRAPHICS_EXPORT const CGPoint CGPointZero;
 COREGRAPHICS_EXPORT const CGSize CGSizeZero;
 
@@ -61,6 +62,14 @@ static inline bool CGPointEqualToPoint(CGPoint a,CGPoint b){
    return ((a.x==b.x) && (a.y==b.y))?TRUE:FALSE;
 }
 
+static inline bool CGSizeEqualToSize(CGSize a, CGSize b) {
+    return ((a.height==b.height)&&(a.width==b.width))?TRUE:FALSE;
+}
+
+static inline bool CGRectEqualToRect(CGRect a, CGRect b) {
+    return (CGSizeEqualToSize(a.size, b.size)&&CGPointEqualToPoint(a.origin, b.origin))?TRUE:FALSE;
+}
+
 static inline CGRect CGRectInset(CGRect rect,CGFloat dx,CGFloat dy) {
    rect.origin.x+=dx;
    rect.origin.y+=dy;
@@ -71,6 +80,10 @@ static inline CGRect CGRectInset(CGRect rect,CGFloat dx,CGFloat dy) {
 
 static inline bool CGRectIsEmpty(CGRect rect) {
    return ((rect.size.width==0) && (rect.size.height==0))?TRUE:FALSE;
+}
+
+static inline bool CGRectIsNull(CGRect rect) {
+    return ((CGRectEqualToRect(rect, CGRectNull)))?TRUE:FALSE;
 }
 
 static inline bool CGRectIntersectsRect(CGRect a, CGRect b)

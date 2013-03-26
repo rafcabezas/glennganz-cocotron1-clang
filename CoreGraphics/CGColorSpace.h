@@ -38,3 +38,4 @@ COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreatePattern(CGColorSpaceRef ba
 
 COREGRAPHICS_EXPORT CGColorSpaceModel CGColorSpaceGetModel(CGColorSpaceRef self);
 COREGRAPHICS_EXPORT size_t CGColorSpaceGetNumberOfComponents(CGColorSpaceRef self);
+COREGRAPHICS_EXPORT CFStringRef CGColorSpaceCopyName(CGColorSpaceRef cs);

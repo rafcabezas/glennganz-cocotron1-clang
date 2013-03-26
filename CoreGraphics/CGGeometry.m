@@ -9,5 +9,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <CoreGraphics/CGGeometry.h>
 
 const CGRect CGRectZero={{0,0},{0,0}};
+const CGRect CGRectNull={{INFINITY,INFINITY},{0,0}};
 const CGPoint CGPointZero={0,0};
 const CGSize CGSizeZero={0,0};

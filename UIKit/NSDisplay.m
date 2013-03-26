@@ -29,7 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -init {
-   _eventMask=0;
+   //_eventMask=0;
    _eventQueue=[NSMutableArray new];
    return self;
 }
@@ -95,7 +95,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
    NSEvent *result=nil;
 
-   _eventMask=mask;
+   //_eventMask=mask;
 
    if([_eventQueue count])
       untilDate=[NSDate date];

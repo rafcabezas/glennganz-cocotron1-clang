@@ -4124,6 +4124,20 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
+		0575206216FFEBA1004AE1C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E46FEBE0A2D2DCF004CD27E /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C6EC42561386AABE00F6A9D5;
+			remoteInfo = "Foundation-Windows-i386 (clang)";
+		};
+		0575206416FFEBA1004AE1C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6E46FEBE0A2D2DCF004CD27E /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C6EEC555138508A50060A27A;
+			remoteInfo = "Foundation-Darwin-i386 (clang)";
+		};
 		6E46FEC70A2D2DCF004CD27E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6E46FEBE0A2D2DCF004CD27E /* Foundation.xcodeproj */;
@@ -6176,9 +6190,11 @@
 			isa = PBXGroup;
 			children = (
 				FE01AACA0C5D9BCC00AEA51A /* Foundation.framework */,
+				0575206316FFEBA1004AE1C2 /* Foundation.framework */,
 				6E46FEC80A2D2DCF004CD27E /* Foundation.framework */,
 				6E46FECA0A2D2DCF004CD27E /* Foundation.framework */,
 				FED70ACA0C3B3FD9000CBE5B /* Foundation.framework */,
+				0575206516FFEBA1004AE1C2 /* Foundation.framework */,
 				FEE66D7A0C3D6F8A00FBED82 /* Foundation.framework */,
 				FE65206F0FBE3D3D00464BFD /* Foundation.framework */,
 				FED5359C0FE061B200F02667 /* Foundation.framework */,
@@ -8747,6 +8763,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		0575206316FFEBA1004AE1C2 /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = 0575206216FFEBA1004AE1C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0575206516FFEBA1004AE1C2 /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = 0575206416FFEBA1004AE1C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		6E46FEC80A2D2DCF004CD27E /* Foundation.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -11343,6 +11373,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = AppKit;
 				SYMROOT = build/Windows/i386;
+				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/libjpeg/include /Developer/Cocotron/1.0/Windows/i386/zlib/include /Developer/Cocotron/1.0/Windows/i386/libpng/include";
 			};
 			name = Debug;
 		};
@@ -11605,6 +11636,11 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_MODE_FLAG = "og-w,a+rX";
 				INSTALL_PATH = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
+				LIBRARY_SEARCH_PATHS = (
+					/Developer/Cocotron/1.0/Windows/i386/libjpeg/lib,
+					/Developer/Cocotron/1.0/Windows/i386/zlib/lib,
+					/Developer/Cocotron/1.0/Windows/i386/libpng/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DWINVER=0x500",
 					"-DQUARTZCORE_INSIDE_BUILD",
@@ -11629,11 +11665,15 @@
 					"-Wl,--export-all-symbols",
 					"-Wl,--image-base=0x20000000",
 					"-Wl,--out-implib,$TARGET_BUILD_DIR/AppKit.framework/libAppKit.a",
+					"-lz",
+					"-ljpeg",
+					"-lpng14.dll",
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = AppKit;
 				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = build/Windows/i386;
+				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/libjpeg/include /Developer/Cocotron/1.0/Windows/i386/zlib/include /Developer/Cocotron/1.0/Windows/i386/libpng/include";
 			};
 			name = Release;
 		};

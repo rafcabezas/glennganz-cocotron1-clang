@@ -77,9 +77,13 @@ UIKIT_EXPORT int UIApplicationMain (int argc,char *argv[],NSString *applicationC
 
 
 @interface UIApplication : UIResponder {
+    NSEvent *_currentEvent;
+    id _display;
    id              _delegate;
    NSMutableArray *_windows;
-   UIWindow       *_keyWindow;
+    UIWindow       *_keyWindow;
+    UIWindow       *_mainWindow;
+    bool _isRunning;
 }
 
 @property(nonatomic,assign) id<UIApplicationDelegate> delegate;

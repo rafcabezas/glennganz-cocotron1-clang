@@ -200,3 +200,7 @@ BOOL NSMouseInRect(NSPoint point,NSRect rect,BOOL flipped) {
             point.y>NSMinY(rect)  && point.y<=NSMaxY(rect));
 }
 
+NSPoint NSPointFromCGPoint(CGPoint point) {
+    return NSMakePoint(point.x, point.y);
+}
+

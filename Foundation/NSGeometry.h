@@ -40,6 +40,7 @@ static inline NSPoint NSMakePoint(CGFloat x,CGFloat y) {
 FOUNDATION_EXPORT BOOL NSEqualPoints(NSPoint point0,NSPoint point1);
 FOUNDATION_EXPORT NSString *NSStringFromPoint(NSPoint point);
 FOUNDATION_EXPORT NSPoint NSPointFromString(NSString *string);
+FOUNDATION_EXPORT NSPoint NSPointFromCGPoint(CGPoint point);
 
 //
 FOUNDATION_EXPORT const NSSize NSZeroSize;

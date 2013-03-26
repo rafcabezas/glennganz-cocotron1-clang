@@ -31,7 +31,15 @@ typedef enum {
    NSPlatformSpecificDisplayEvent=16,
    NSAppKitSystem=17,
    NSScrollWheel=18,
-   NSApplicationDefined=19
+   NSApplicationDefined=19,
+    //More
+    NSEventTypeGesture,
+    NSEventTypeMagnify,
+    NSEventTypeSwipe,
+    NSEventTypeRotate,
+    NSEventTypeBeginGesture,
+    NSEventTypeEndGesture,
+
 } NSEventType;
 
 enum {

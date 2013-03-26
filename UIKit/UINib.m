@@ -2,9 +2,9 @@
 
 @implementation UINib
 
-+(UINib *)nibWithData:(NSData *)data bundle:(NSBundle *)bundle;
-+(UINib *)nibWithNibName:(NSString *)name bundle:(NSBundle *)bundle;
++(UINib *) nibWithData:(NSData *)data bundle:(NSBundle *)bundle{return nil;};
++(UINib *) nibWithNibName:(NSString *)name bundle:(NSBundle *)bundle{return nil;};
 
--(NSArray *)instantiateWithOwner:owner options:(NSDictionary *)options;
+-(NSArray *)instantiateWithOwner:owner options:(NSDictionary *)options{return nil;};
 
 @end

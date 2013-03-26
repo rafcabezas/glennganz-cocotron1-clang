@@ -28,6 +28,20 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
+		057527131700E7D2004AE1C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C6EC42561386AABE00F6A9D5;
+			remoteInfo = "Foundation-Windows-i386 (clang)";
+		};
+		057527151700E7D2004AE1C2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C6EEC555138508A50060A27A;
+			remoteInfo = "Foundation-Darwin-i386 (clang)";
+		};
 		50ACFD4A1275F6F3008BEDDD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */;
@@ -102,33 +116,34 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 8DC2EF5B0486A6940098B216 /* OpenGL.framework */;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
 			remoteInfo = "OpenGL-Windows-i386";
 		};
 		FE2A2D0812D2C7760028C06D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = C8E0BE8A0F0E544700677729 /* OpenGL.framework */;
+			remoteGlobalIDString = C8E0BE8A0F0E544700677729;
 			remoteInfo = "OpenGL-Darwin-i386";
 		};
 		FE2A2D0A12D2C7760028C06D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = FE5A876310C6F244005E348A /* OpenGL.framework */;
+			remoteGlobalIDString = FE5A876310C6F244005E348A;
 			remoteInfo = "OpenGL-FreeBSD-i386";
 		};
 		FE2A2D0C12D2C77C0028C06D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8DC2EF4F0486A6940098B216 /* OpenGL-Windows-i386 */;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
 			remoteInfo = "OpenGL-Windows-i386";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		057527061700E7D2004AE1C2 /* objc.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = objc.framework; path = ../objc/build/Windows/i386/Release/objc.framework; sourceTree = "<group>"; };
 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Foundation.xcodeproj; path = ../Foundation/Foundation.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -165,6 +180,7 @@
 		0867D691FE84028FC02AAC07 /* CoreVideo */ = {
 			isa = PBXGroup;
 			children = (
+				057527061700E7D2004AE1C2 /* objc.framework */,
 				FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */,
 				50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */,
 				FE43045A11E2779700EBDD56 /* CVReturn.h */,
@@ -224,9 +240,11 @@
 			isa = PBXGroup;
 			children = (
 				50ACFD4B1275F6F3008BEDDD /* Foundation.framework */,
+				057527141700E7D2004AE1C2 /* Foundation.framework */,
 				50ACFD4D1275F6F3008BEDDD /* Foundation.framework */,
 				50ACFD4F1275F6F3008BEDDD /* Foundation.framework */,
 				50ACFD511275F6F3008BEDDD /* Foundation.framework */,
+				057527161700E7D2004AE1C2 /* Foundation.framework */,
 				50ACFD531275F6F3008BEDDD /* Foundation.framework */,
 				50ACFD551275F6F3008BEDDD /* Foundation.framework */,
 				50ACFD571275F6F3008BEDDD /* Foundation.framework */,
@@ -321,6 +339,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		057527141700E7D2004AE1C2 /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = 057527131700E7D2004AE1C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		057527161700E7D2004AE1C2 /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = 057527151700E7D2004AE1C2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		50ACFD4B1275F6F3008BEDDD /* Foundation.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -462,7 +494,10 @@
 				DEPLOYMENT_POSTPROCESSING = YES;
 				DSTROOT = /;
 				EXECUTABLE_SUFFIX = .1.0.dll;
-				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
+				FRAMEWORK_SEARCH_PATHS = (
+					/Developer/Cocotron/1.0/Windows/i386/Frameworks,
+					"\"$(SRCROOT)/../objc/build/Windows/i386/Release\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";

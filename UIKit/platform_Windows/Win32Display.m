@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/Win32Cursor.h>
 #import <Onyx2D/O2Context_gdi.h>
 #import <AppKit/Win32DeviceContextWindow.h>
-#import "O2Context_gdi+AppKit.h"
+//#import "O2Context_gdi+AppKit.h"
 #import <AppKit/Win32EventInputSource.h>
 
 #import <AppKit/NSScreen.h>
@@ -1295,7 +1295,7 @@ static int CALLBACK buildTypeface(const LOGFONTA *lofFont_old,
    //setup.rtMinMargin=0;
 
    [self stopWaitCursor];
-   PageSetupDlg(&setup);
+   //PageSetupDlg(&setup);
    [self startWaitCursor];
 }
 
@@ -1326,7 +1326,7 @@ static int CALLBACK buildTypeface(const LOGFONTA *lofFont_old,
    printProperties.hSetupTemplate=NULL; 
 
    [self stopWaitCursor];
-   check=PrintDlg(&printProperties);
+   //check=PrintDlg(&printProperties);
    [self startWaitCursor];
 
    if(check==0)

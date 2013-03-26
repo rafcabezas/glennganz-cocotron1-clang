@@ -17,6 +17,11 @@ CTFontRef CTFontCreateUIFontForLanguage(CTFontUIFontType uiFontType,CGFloat size
    return [[KTFont alloc] initWithUIFontType:uiFontType size:size language:language];
 }
 
+CTFontRef CTFontCreateWithName(CFStringRef name,CGFloat size,NSString *language) {
+    
+    return [[KTFont alloc] initWithFont:CGFontCreateWithFontName(name) size:size];
+}
+
 CFStringRef CTFontCopyFullName(CTFontRef self) {
    return [self copyName];
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		057527021700E762004AE1C2 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 057527011700E762004AE1C2 /* AppKit.framework */; };
 		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
 		FE0FE169129465E90014B5E9 /* CATransaction.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FE167129465E90014B5E9 /* CATransaction.h */; };
 		FE0FE16A129465E90014B5E9 /* CATransaction.m in Sources */ = {isa = PBXBuildFile; fileRef = FE0FE168129465E90014B5E9 /* CATransaction.m */; };
@@ -426,6 +427,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		057527011700E762004AE1C2 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = ../../../../../System/Library/Frameworks/AppKit.framework; sourceTree = "<group>"; };
+		057527041700E7AF004AE1C2 /* objc.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = objc.framework; path = ../objc/build/Windows/i386/Release/objc.framework; sourceTree = "<group>"; };
 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -756,6 +759,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				057527021700E762004AE1C2 /* AppKit.framework in Frameworks */,
 				FE67A05412888C8700CD9BEF /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -773,6 +777,8 @@
 		0867D691FE84028FC02AAC07 /* UIKit */ = {
 			isa = PBXGroup;
 			children = (
+				057527041700E7AF004AE1C2 /* objc.framework */,
+				057527011700E762004AE1C2 /* AppKit.framework */,
 				FE5F4DFB12A8A17400F5F334 /* UIGraphics.h */,
 				FE5F4DFC12A8A17400F5F334 /* UIGraphics.m */,
 				FEBA28221291CB3100E4347B /* UIKit.h */,
@@ -1726,7 +1732,11 @@
 				DEPLOYMENT_POSTPROCESSING = YES;
 				DSTROOT = /;
 				EXECUTABLE_SUFFIX = .1.0.dll;
-				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
+				FRAMEWORK_SEARCH_PATHS = (
+					/Developer/Cocotron/1.0/Windows/i386/Frameworks,
+					"\"$(SRCROOT)/../../../Developer/Cocotron_llvm/1.0/Windows/i386/Frameworks\"",
+					"\"$(SRCROOT)/../objc/build/Windows/i386/Release\"",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -1744,6 +1754,7 @@
 				GCC_WARN_SIGN_COMPARE = NO;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_LABEL = YES;
+				HEADER_SEARCH_PATHS = /Volumes/Data/Developer/Cocotron_llvm/1.0/Windows/i386/Frameworks/CoreFoundation.framework/Versions/A/Headers;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_MODE_FLAG = "og-w,a+rX";
 				INSTALL_PATH = /Developer/Cocotron/Touch/Windows/i386/Frameworks;

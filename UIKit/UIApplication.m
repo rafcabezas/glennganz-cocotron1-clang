@@ -1,3 +1,5 @@
+#import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 #import <UIKit/UIApplication.h>
 #import <UIKit/UINib.h>
 #import <UIKit/UIEvent.h>
@@ -138,6 +140,7 @@
 }
 
 int UIApplicationMain (int argc,char *argv[],NSString *applicationClassName,NSString *appDelegateClassName) {
+#if 0
    NSInitializeProcess(argc,(const char **)argv);
    {
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
@@ -164,6 +167,7 @@ int UIApplicationMain (int argc,char *argv[],NSString *applicationClassName,NSSt
     [app run];
    }
    return 0;
+#endif
 }
 
 @end
