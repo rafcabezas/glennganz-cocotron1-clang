@@ -554,12 +554,14 @@ static NSComparisonResult compareWithOptions(NSString *self,NSString *other,NSSt
 }
 
 -(NSComparisonResult)localizedCompare:(NSString *)other {
-   NSUnimplementedMethod();
-   return 0;
+//   NSUnimplementedMethod();
+//   return 0;
+    return [self compare:other]; //for now
 }
 -(NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)other {
-   NSUnimplementedMethod();
-   return 0;
+   //NSUnimplementedMethod();
+    //return 0;
+    return [self caseInsensitiveCompare:other]; //for now
 }
 
 -(NSUInteger)hash {
