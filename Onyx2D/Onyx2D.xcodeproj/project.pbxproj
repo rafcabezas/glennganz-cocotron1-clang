@@ -658,6 +658,20 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
+		058C2CB3172DF55100693FEF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE081BAA118A165F0026A20E /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C6EC42561386AABE00F6A9D5;
+			remoteInfo = "Foundation-Windows-i386 (clang)";
+		};
+		058C2CB5172DF55100693FEF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE081BAA118A165F0026A20E /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C6EEC555138508A50060A27A;
+			remoteInfo = "Foundation-Darwin-i386 (clang)";
+		};
 		FE081BB7118A165F0026A20E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = FE081BAA118A165F0026A20E /* Foundation.xcodeproj */;
@@ -1219,9 +1233,11 @@
 			isa = PBXGroup;
 			children = (
 				FE081BB8118A165F0026A20E /* Foundation.framework */,
+				058C2CB4172DF55100693FEF /* Foundation.framework */,
 				FE081BBA118A165F0026A20E /* Foundation.framework */,
 				FE081BBC118A165F0026A20E /* Foundation.framework */,
 				FE081BBE118A165F0026A20E /* Foundation.framework */,
+				058C2CB6172DF55100693FEF /* Foundation.framework */,
 				FE081BC0118A165F0026A20E /* Foundation.framework */,
 				FE081BC2118A165F0026A20E /* Foundation.framework */,
 				FE081BC4118A165F0026A20E /* Foundation.framework */,
@@ -1763,6 +1779,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		058C2CB4172DF55100693FEF /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = 058C2CB3172DF55100693FEF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		058C2CB6172DF55100693FEF /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = 058C2CB5172DF55100693FEF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		FE081BB8118A165F0026A20E /* Foundation.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -2216,6 +2246,7 @@
 				PRODUCT_NAME = Onyx2D;
 				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = build/Windows/i386;
+				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/";
 			};
 			name = Debug;
 		};
@@ -2256,6 +2287,7 @@
 				PRODUCT_NAME = Onyx2D;
 				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = build/Windows/i386;
+				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/";
 			};
 			name = Release;
 		};
