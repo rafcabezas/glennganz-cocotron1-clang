@@ -11,6 +11,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 @implementation NSSegmentedControl
 
++(Class)cellClass {
+    return [NSSegmentedCell class];
+}
+
 -(NSInteger)segmentCount {
    return [_cell segmentCount];
 }
