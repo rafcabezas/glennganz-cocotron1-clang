@@ -123,7 +123,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(NSString *)description {
-    return [NSString stringWithFormat:@"<%@[0x%lx] type: %d>", [self class], self, _type];
+    return [NSString stringWithFormat:@"<NSEvent: type=%d loc=(%f,%f) time=%f flags=0x%X win=%p winNum=%d",[self type], [self locationInWindow].x, [self locationInWindow].y, [self timestamp], [self modifierFlags], [self window], [self windowNumber]];
 }
 
 
@@ -185,10 +185,14 @@ static NSTimer *_periodicTimer=nil;
 }
 
 -(void *)userData {
-   [NSException raise:NSInternalInconsistencyException format:@"No userData in %@",[self class]];
-   return 0;
+	[NSException raise:NSInternalInconsistencyException format:@"No userData in %@",[self class]];
+	return 0;
 }
 
+-(NSInteger)trackingNumber {
+	[NSException raise:NSInternalInconsistencyException format:@"No trackingNumber in %@",[self class]];
+	return 0;
+}
 
 @end
 

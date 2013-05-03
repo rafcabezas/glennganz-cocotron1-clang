@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <CoreGraphics/CoreGraphicsExport.h>
 #import <CoreFoundation/CFBase.h>
-#import <stdbool.h>
+#include <stdbool.h>
 
 COREGRAPHICS_EXPORT const CGRect CGRectZero;
 COREGRAPHICS_EXPORT const CGRect CGRectNull;
@@ -30,6 +30,10 @@ static inline CGSize CGSizeMake(CGFloat x,CGFloat y){
    return result;
 }
 
+static bool CGSizeEqualToSize(CGSize a, CGSize b) {
+	return a.width == b.width && a.height == b.height;
+}
+
 static inline CGFloat CGRectGetMinX(CGRect rect){
    return rect.origin.x;
 }
@@ -38,12 +42,20 @@ static inline CGFloat CGRectGetMaxX(CGRect rect){
    return rect.origin.x+rect.size.width;
 }
 
+static inline CGFloat CGRectGetMidX(CGRect rect){
+	return CGRectGetMinX(rect) + ((CGRectGetMaxX(rect)-CGRectGetMinX(rect))/2.f);
+}
+
 static inline CGFloat CGRectGetMinY(CGRect rect){
    return rect.origin.y;
 }
 
 static inline CGFloat CGRectGetMaxY(CGRect rect){
    return rect.origin.y+rect.size.height;
+}
+
+static inline CGFloat CGRectGetMidY(CGRect rect){
+	return CGRectGetMinY(rect) + ((CGRectGetMaxY(rect)-CGRectGetMinY(rect))/2.f);
 }
 
 static inline CGFloat CGRectGetWidth(CGRect rect){
@@ -62,14 +74,6 @@ static inline bool CGPointEqualToPoint(CGPoint a,CGPoint b){
    return ((a.x==b.x) && (a.y==b.y))?TRUE:FALSE;
 }
 
-static inline bool CGSizeEqualToSize(CGSize a, CGSize b) {
-    return ((a.height==b.height)&&(a.width==b.width))?TRUE:FALSE;
-}
-
-static inline bool CGRectEqualToRect(CGRect a, CGRect b) {
-    return (CGSizeEqualToSize(a.size, b.size)&&CGPointEqualToPoint(a.origin, b.origin))?TRUE:FALSE;
-}
-
 static inline CGRect CGRectInset(CGRect rect,CGFloat dx,CGFloat dy) {
    rect.origin.x+=dx;
    rect.origin.y+=dy;
@@ -78,12 +82,14 @@ static inline CGRect CGRectInset(CGRect rect,CGFloat dx,CGFloat dy) {
    return rect;
 }
 
-static inline bool CGRectIsEmpty(CGRect rect) {
-   return ((rect.size.width==0) && (rect.size.height==0))?TRUE:FALSE;
+static inline CGRect CGRectOffset(CGRect rect,CGFloat dx,CGFloat dy) {
+	rect.origin.x+=dx;
+	rect.origin.y+=dy;
+	return rect;
 }
 
-static inline bool CGRectIsNull(CGRect rect) {
-    return ((CGRectEqualToRect(rect, CGRectNull)))?TRUE:FALSE;
+static inline bool CGRectIsEmpty(CGRect rect) {
+   return ((rect.size.width==0) && (rect.size.height==0))?TRUE:FALSE;
 }
 
 static inline bool CGRectIntersectsRect(CGRect a, CGRect b)
@@ -97,4 +103,32 @@ static inline bool CGRectIntersectsRect(CGRect a, CGRect b)
     if(a.origin.y > b.origin.y + b.size.height)
         return false;
     return true;
+}
+
+static inline bool CGRectEqualToRect(CGRect a, CGRect b) {
+	return CGPointEqualToPoint(a.origin, b.origin) && CGSizeEqualToSize(a.size, b.size);
+}
+
+static inline bool CGRectIsInfinite(CGRect rect) {
+	return (isinf(rect.origin.x) ||
+			isinf(rect.origin.y) || 
+			isinf(rect.size.width) ||
+			isinf(rect.size.height));
+}
+
+static inline bool CGRectIsNull(CGRect rect) {
+	return CGRectEqualToRect(rect, CGRectNull);
+}
+
+
+COREGRAPHICS_EXPORT CGRect CGRectUnion(CGRect a, CGRect b);
+COREGRAPHICS_EXPORT CGRect CGRectIntersection(CGRect a, CGRect b);
+COREGRAPHICS_EXPORT CGRect CGRectIntegral(CGRect rect);
+
+static inline bool CGRectContainsRect(CGRect a, CGRect b)
+{
+	return (CGRectGetMinX(b) >= CGRectGetMinX(a) &&
+			CGRectGetMaxX(b) <= CGRectGetMaxX(a) &&
+			CGRectGetMinY(b) >= CGRectGetMinY(a) &&
+			CGRectGetMaxY(b) <= CGRectGetMaxY(a));
 }

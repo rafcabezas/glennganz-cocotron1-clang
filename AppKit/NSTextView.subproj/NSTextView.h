@@ -17,6 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSText.h>
 #import <AppKit/NSTextInput.h>
 #import <AppKit/NSDragging.h>
+#import <Foundation/NSTextCheckingResult.h>
 
 @class NSTextStorage, NSLayoutManager, NSTextContainer, NSUndoManager;
 @class NSRulerView, NSRulerMarker;
@@ -48,12 +49,14 @@ typedef enum {
 APPKIT_EXPORT NSString * const NSTextViewDidChangeSelectionNotification;
 APPKIT_EXPORT NSString * const NSOldSelectedCharacterRange;
 
+@class NSUndoTyping;
+
 @interface NSTextView : NSText <NSTextInput> {
    NSTextStorage   *_textStorage;
    NSTextContainer *_textContainer;
    NSSize           _textContainerInset;
    BOOL             _ownsTextStorage;
-   NSDictionary    *_typingAttributes;
+   NSDictionary*    _typingAttributes;
 
    id               _delegate;
    BOOL             _isEditable;
@@ -77,9 +80,11 @@ APPKIT_EXPORT NSString * const NSOldSelectedCharacterRange;
    BOOL             _isVerticallyResizable;
    BOOL             _usesRuler;
    BOOL             _rulerVisible;
+   BOOL				_usesFontPanel;
    BOOL             _allowsUndo;
 
    NSMutableArray        *_selectedRanges;
+   NSArray				 *_initialRanges; // selected ranges at the start of a selection change
    NSSelectionAffinity    _selectionAffinity;
    NSSelectionGranularity _selectionGranularity;
    NSDictionary          *_selectedTextAttributes;
@@ -95,10 +100,15 @@ APPKIT_EXPORT NSString * const NSOldSelectedCharacterRange;
    int                    _userCompletionSelectedItem;	// index within completion array
   
    NSUndoManager         *_fieldEditorUndoManager;
-   NSString              *_undoString; // The text that is being replaced by the current typing operation
-   NSRange                _undoRange; // The range of text that was entered in the current typing operation
    BOOL                   _processingKeyEvent;
    BOOL                   _firstResponderButNotEditingYet;
+   
+   NSInteger _spellCheckerDocumentTag;
+   BOOL _isContinuousSpellCheckingEnabled;
+   BOOL _isAutomaticSpellingCorrectionEnabled;
+   NSTextCheckingTypes _enabledTextCheckingTypes;
+    
+    NSUndoTyping *_undoTyping;
 }
 
 -initWithFrame:(NSRect)frame textContainer:(NSTextContainer *)container;
@@ -112,6 +122,8 @@ APPKIT_EXPORT NSString * const NSOldSelectedCharacterRange;
 
 -(NSLayoutManager *)layoutManager;
 -(NSTextStorage *)textStorage;
+
+-(void)insertText:(id)string;
 
 -(BOOL)usesRuler;
 -(BOOL)isRulerVisible;
@@ -184,6 +196,22 @@ APPKIT_EXPORT NSString * const NSOldSelectedCharacterRange;
 
 -(void)_setFieldEditorUndoManager:(NSUndoManager *)undoManager;
 -(void)breakUndoCoalescing;
+
+-(NSInteger)spellCheckerDocumentTag;
+
+-(BOOL)isContinuousSpellCheckingEnabled;
+-(void)setContinuousSpellCheckingEnabled:(BOOL)value;
+-(void)toggleContinuousSpellChecking:sender;
+
+-(BOOL)isAutomaticSpellingCorrectionEnabled;
+-(void)setAutomaticSpellingCorrectionEnabled:(BOOL)value;
+-(void)toggleAutomaticSpellingCorrection:sender;
+
+-(NSTextCheckingTypes)enabledTextCheckingTypes;
+-(void)setEnabledTextCheckingTypes:(NSTextCheckingTypes)checkingTypes;
+
+-(void)setSpellingState:(NSInteger)value range:(NSRange)characterRange;
+
 @end
 
 @interface NSObject(NSTextView_undoManager)

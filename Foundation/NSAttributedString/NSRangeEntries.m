@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import "../../Foundation/NSAttributedString/NSRangeEntries.h"
+#import <Foundation/NSRangeEntries.h>
 #import <Foundation/NSString.h>
 
 /* this could be improved with more merging of adjacent entries after insert/remove */
@@ -42,11 +42,17 @@ struct NSRangeEntries {
    return result;
 }
 
- void NSFreeRangeEntries(NSRangeEntries *self) {
-   NSResetRangeEntries(self);
-   NSZoneFree(NULL,self->entries);
-   NSZoneFree(NULL,self);
+
+void NSFreeRangeEntries(NSRangeEntries *self)
+{
+    if (self == NULL) {
+         return;
+    }
+    NSResetRangeEntries(self);
+    NSZoneFree(NULL, self->entries);
+    NSZoneFree(NULL, self);
 }
+
 
  void NSResetRangeEntries(NSRangeEntries *self) {
    NSInteger i;
@@ -62,6 +68,17 @@ struct NSRangeEntries {
 
  NSUInteger NSCountRangeEntries(NSRangeEntries *self) {
    return self->count;
+}
+
+static inline void removeEntryAtIndex(NSRangeEntries *self,NSUInteger index){
+	if(self->objects)
+		[(id)self->entries[index].value release];
+	else
+		NSZoneFree(NULL,self->entries[index].value);
+	
+	self->count--;
+	for(;index<self->count;index++)
+		self->entries[index]=self->entries[index+1];
 }
 
 static inline void insertEntryAtIndex(NSRangeEntries *self,NSUInteger index,NSRange range,void *value){
@@ -83,7 +100,7 @@ static inline void insertEntryAtIndex(NSRangeEntries *self,NSUInteger index,NSRa
    self->entries[index].value=value;
 }
 
- void NSRangeEntryInsert(NSRangeEntries *self,NSRange range,void *value) {
+void NSRangeEntryInsert(NSRangeEntries *self,NSRange range,void *value) {
    NSInteger count=self->count;
    NSInteger bottom=0,top=count;
    NSInteger insertAt=0;
@@ -113,24 +130,52 @@ static inline void insertEntryAtIndex(NSRangeEntries *self,NSUInteger index,NSRa
      }
     }
    }
-
-   if(self->objects){
-    if(insertAt>0){
-     if([(id)(self->entries[insertAt-1].value) isEqual:value]){
-      self->entries[insertAt-1].range=NSUnionRange(self->entries[insertAt-1].range,range);
-      return;
-     }
-    }
-    if(insertAt+1<self->count){
-     if([(id)(self->entries[insertAt+1].value) isEqual:value]){
-      self->entries[insertAt+1].range=NSUnionRange(self->entries[insertAt+1].range,range);
-      return;
-     }
-    }
-   }
-
-   insertEntryAtIndex(self,insertAt,range,value);
-}
+	BOOL merged = NO;
+	if (range.length == 0) {
+		// We'll just try to merge entries around the location
+		if(self->objects && insertAt>0 && insertAt<self->count){
+			id prev = self->entries[insertAt-1].value;
+			id next = self->entries[insertAt].value;
+			if ([prev isEqual:next]) {
+				range = NSUnionRange(self->entries[insertAt].range,self->entries[insertAt-1].range);
+				self->entries[insertAt-1].range=range;
+				removeEntryAtIndex(self, insertAt);
+			}
+		}
+		// We don't really want to insert a 0 length entry
+		return;
+	} else {
+		if(self->objects){
+			if(insertAt>0){
+				// Check if we can just merge the new entry with the previous one
+				if(range.length == 0 || [(id)(self->entries[insertAt-1].value) isEqual:value]){
+					range = NSUnionRange(self->entries[insertAt-1].range,range);
+					self->entries[insertAt-1].range=range;
+					merged = YES;
+				}
+			}
+			if(insertAt<self->count){
+				// Check if we can just merge the new entry with the next one
+				if(range.length == 0 || [(id)(self->entries[insertAt].value) isEqual:value]){
+					range = NSUnionRange(self->entries[insertAt].range,range);
+					if (merged) {
+						// We merged with both the previous entry and the next one - the next one isn't needed anymore
+						// so just merge it with the previous one
+						self->entries[insertAt-1].range=range;
+						removeEntryAtIndex(self, insertAt);
+					} else {
+						self->entries[insertAt].range=range;
+					}
+					merged = YES;;
+				}
+			}
+		}
+	}
+	if (merged == NO) {
+		insertEntryAtIndex(self,insertAt,range,value);
+	}
+	
+ }
 
  void *NSRangeEntryAtIndex(NSRangeEntries *self,NSUInteger location,NSRange *effectiveRangep) {
    NSInteger     count=self->count;
@@ -237,15 +282,9 @@ static inline void insertEntryAtIndex(NSRangeEntries *self,NSUInteger index,NSRa
    return YES;
 }
 
-static inline void removeEntryAtIndex(NSRangeEntries *self,NSUInteger index){
-   if(self->objects)
-    [(id)self->entries[index].value release];
-   else
-    NSZoneFree(NULL,self->entries[index].value);
-
-   self->count--;
-   for(;index<self->count;index++)
-    self->entries[index]=self->entries[index+1];
+void NSRangeEntriesRemoveEntryAtIndex(NSRangeEntries *self,NSUInteger index)
+{
+	removeEntryAtIndex(self, index);
 }
 
  void NSRangeEntriesExpandAndWipe(NSRangeEntries *self,NSRange range,NSInteger delta) {
@@ -259,7 +298,7 @@ static inline void removeEntryAtIndex(NSRangeEntries *self,NSUInteger index){
     useAttributes=useFirst;
    else if(range.location>0)
     useAttributes=useBefore;
-   else 
+   else
     useAttributes=useAfter;
 
    while(--count>=0){
@@ -295,39 +334,43 @@ static inline void removeEntryAtIndex(NSRangeEntries *self,NSUInteger index){
      else if(useAttributes==useBefore || useAttributes==useFirst)
       self->entries[count].range.length=(max+delta)-check.location;
      else
-      self->entries[count].range.length=range.location-check.location;     
+      self->entries[count].range.length=range.location-check.location;
     }
    }
 }
 
- void NSRangeEntriesDivideAndConquer(NSRangeEntries *self,NSRange range) {
-   NSInteger  count=self->count;
-   NSUInteger max=NSMaxRange(range);
-
-   while(--count>=0){
-    NSRange check=self->entries[count].range;
-
-    if(check.location<max){
-     NSUInteger maxCheck=NSMaxRange(check);
-
-     if(check.location>=range.location){
-      if(maxCheck<=max)
-       removeEntryAtIndex(self,count);
-      else {
-       self->entries[count].range.length=maxCheck-max;
-       self->entries[count].range.location=max;
-      }
-     }
-     else if(maxCheck<=range.location)
-       break;
-     else {
-      if(maxCheck>max)
-       insertEntryAtIndex(self,count+1,NSMakeRange(max,maxCheck-max),self->entries[count].value);
-
-      self->entries[count].range.length=range.location-check.location;
-     }
-    }
-   }
+void NSRangeEntriesDivideAndConquer(NSRangeEntries *self,NSRange range) {
+	NSInteger  count=self->count;
+	NSUInteger max=NSMaxRange(range);
+	
+	while(--count>=0){
+		NSRange check=self->entries[count].range;
+		
+		if(check.location<max){
+			NSUInteger maxCheck=NSMaxRange(check);
+			
+			if(check.location>=range.location){
+				if(maxCheck<=max) {
+					// The entry is completely covered by the added range - it's not needed anymore
+					removeEntryAtIndex(self,count);
+				} else {
+					// Remove the part of the entry covered by the added range 
+					self->entries[count].range.length=maxCheck-max;
+					self->entries[count].range.location=max;
+				}
+			} else if(maxCheck<=range.location) {
+				// The entry is completely before the new range - we're done
+				break;
+			} else {
+				// The end of the entry is covered by the added one
+				if(maxCheck>max) {
+					insertEntryAtIndex(self,count+1,NSMakeRange(max,maxCheck-max),self->entries[count].value);
+				}
+				// Shorten the entry to make room for the added one
+				self->entries[count].range.length=range.location-check.location;
+			}
+		}
+	}
 }
 
  void NSRangeEntriesDump(NSRangeEntries *self) {
@@ -339,10 +382,13 @@ NSLog(@"DUMP BEGIN");
 NSLog(@"DUMP END");
 }
 
- void NSRangeEntriesDumpAndAbort(NSRangeEntries *self) {
-  NSRangeEntriesDump(self);
-*(char *)0=0;
+
+void NSRangeEntriesDumpAndAbort(NSRangeEntries *self)
+{
+    NSRangeEntriesDump(self);
+    __builtin_trap();
 }
+
 
  void NSRangeEntriesVerify(NSRangeEntries *self,NSUInteger length) {
 #if 0

@@ -20,6 +20,7 @@ typedef enum {
 @interface NSSplitView : NSView {
    id   _delegate;
    BOOL _isVertical;
+	NSSplitViewDividerStyle _dividerStyle;
 }
 
 -(id)delegate;
@@ -36,6 +37,14 @@ typedef enum {
 -(BOOL)isSubviewCollapsed:(NSView *)subview;
 
 -(void)setDividerStyle:(NSSplitViewDividerStyle)style;
+- (NSSplitViewDividerStyle)dividerStyle;
+
+/* Get the minimum or maximum possible position of a divider */
+- (float)minPossiblePositionOfDividerAtIndex:(int)index;
+- (float)maxPossiblePositionOfDividerAtIndex:(int)index;
+
+/** Set the position of a divider */
+- (void)setPosition:(float)position ofDividerAtIndex:(int)index;
 
 @end
 
@@ -43,9 +52,19 @@ typedef enum {
 // with two individual methods for each.
 @interface NSObject(NSSplitView_delegate)
 -(BOOL)splitView:(NSSplitView *)splitView canCollapseSubview:(NSView *)subview;
+-(BOOL)splitView:(NSSplitView *)splitView shouldCollapseSubview:(NSView *)subview forDoubleClickOnDividerAtIndex:(int)index;
+-(CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMinimumPosition ofSubviewAt:(int)index;
+-(CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMaximumPosition ofSubviewAt:(int)index;
+
 -(void)splitView:(NSSplitView *)splitView constrainMinCoordinate:(float *)min maxCoordinate:(float *)max ofSubviewAt:(int)index;
 -(float)splitView:(NSSplitView *)splitView constrainSplitPosition:(float)pos ofSubviewAt:(int)index;
 -(void)splitView:(NSSplitView *)splitView resizeSubviewsWithOldSize:(NSSize)size;
+
+-(BOOL)splitView:(NSSplitView *)splitView shouldAdjustSizeOfSubview:(NSView *)view;
+-(BOOL)splitView:(NSSplitView *)splitView shouldHideDividerAtIndex:(int)index;
+
+-(NSRect)splitView:(NSSplitView *)splitView effectiveRect:(NSRect)proposedEffectiveRect forDrawnRect:(NSRect)drawnRect ofDividerAtIndex:(int)index;
+-(NSRect)splitView:(NSSplitView *)splitView additionalEffectiveRectOfDividerAtIndex:(NSInteger)index;
 
 -(void)splitViewDidResizeSubviews:(NSNotification *)note;
 -(void)splitViewWillResizeSubviews:(NSNotification *)note;

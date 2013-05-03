@@ -232,7 +232,7 @@ static BOOL isStandardItemIdentifier(NSString *identifier){
     BOOL standardItem=isStandardItemIdentifier(identifier);
     
     if(_delegate==nil || standardItem)
-     item=[[[NSToolbarItem alloc] initWithItemIdentifier:identifier] autorelease];
+     item=[[[[self toolbarItemClass] alloc] initWithItemIdentifier:identifier] autorelease];
     else {
      item=[_delegate toolbar:self itemForItemIdentifier:identifier willBeInsertedIntoToolbar:intoToolbar];
     }
@@ -349,7 +349,7 @@ static BOOL isStandardItemIdentifier(NSString *identifier){
     _loadDefaultItems=NO;
     
     NSArray *items=[self _defaultToolbarItems];
-
+    
     while([_items count])
      [self _removeItemAtIndex:0];
  
@@ -397,11 +397,19 @@ static BOOL isStandardItemIdentifier(NSString *identifier){
     for (i = 0; notes[i].name != nil; i++)
      [[NSNotificationCenter defaultCenter] removeObserver:_delegate name:notes[i].name object:self];
     
+   BOOL isNew = (delegate != nil && delegate != _delegate);
+    
    _delegate = delegate;
     
    for (i = 0; notes[i].name != nil; i++)
     if ([_delegate respondsToSelector:notes[i].selector])
      [[NSNotificationCenter defaultCenter] addObserver:_delegate selector:notes[i].selector name:notes[i].name object:self];
+     
+   if (isNew) {  // allow the new delegate to reset the layout
+    _loadDefaultItems=YES;
+    [self loadDefaultItemsIfNeeded];
+    [_window _toolbarSizeDidChangeFromOldHeight:[self visibleHeight]];
+   }
  }
 
 -(void)didChangeAppearanceGlobal:(BOOL)global {
@@ -545,6 +553,15 @@ static BOOL isStandardItemIdentifier(NSString *identifier){
 -(void)postAwakeFromNib {
 // this causes animation, display, frame changes, do post in initWithCoder:
    [[NSNotificationCenter defaultCenter] postNotificationName:NSToolbarChangeAppearanceNotification object:self];
+}
+
+@end
+
+@implementation NSToolbar (NSToolbarCustomization)
+
+- (Class)toolbarItemClass
+{
+	return [NSToolbarItem class];
 }
 
 @end

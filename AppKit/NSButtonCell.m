@@ -637,19 +637,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 				break;
 
 			case NSMiniControlSize:
-				frame.size.width  = 6;
-				frame.size.height = 4;
-				frame.origin.x    = 3;
-				frame.origin.y    = 4;
+				// Mini controls don't need adjusting they're small enough already.
 				break;
 		}
 	}
 	else if((_bezelStyle==NSRoundedBezelStyle) && (_highlightsBy&NSPushInCellMask) && (_highlightsBy&NSChangeGrayCellMask) && (_showsStateBy==NSNoCellMask)) 
 	{
-		frame.size.width  = 10 - _controlSize*2;
-		frame.size.height = 10 - _controlSize*2;
-		frame.origin.x    =  5 - _controlSize;
-		frame.origin.y    = flipped ? _controlSize*2 - 3 : 7 - _controlSize*2;
+        switch (_controlSize) 
+        {
+            default:
+                frame.size.width  = 10 - _controlSize*2;
+                frame.size.height = 10 - _controlSize*2;
+                frame.origin.x    =  5 - _controlSize;
+                frame.origin.y    = flipped ? _controlSize*2 - 3 : 7 - _controlSize*2;
+                break;
+                
+            case NSMiniControlSize:
+                break;
+        }
 	}   
     else if(_bezelStyle==NSRegularSquareBezelStyle){
 
@@ -664,7 +669,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     BOOL pressed=[self state] && ([self showsStateBy] & NSChangeBackgroundCellMask);
     
     BOOL renderDarkenBg=NO, renderOutlineShadow=NO;
-    CGFloat topGray=0.76, bottomGray=0.98, strokeGray=0.4;
+    //CGFloat topGray=0.76, bottomGray=0.98, strokeGray=0.4;
+    CGFloat topGray=0.98, bottomGray=0.76, strokeGray=0.4;
     if (pressed) {
         topGray=0.4;
         bottomGray=0.30;
@@ -949,7 +955,7 @@ static NSSize scaledImageSizeInFrameSize(NSSize imageSize,NSSize frameSize,NSIma
    NSSize              imageSize=(image==nil)?NSMakeSize(0,0):[[controlView graphicsStyle] sizeOfButtonImage:image enabled:enabled mixed:mixed];
    NSPoint             imageOrigin=frame.origin;
    NSSize              titleSize=[title size];
-   NSRect              titleRect=frame;
+   NSRect              titleRect=[self titleRectForBounds:frame];
    BOOL                drawImage=YES,drawTitle=YES;
    NSCellImagePosition imagePosition=[self imagePosition];
 
@@ -967,7 +973,7 @@ static NSSize scaledImageSizeInFrameSize(NSSize imageSize,NSSize frameSize,NSIma
 
    titleRect.origin.y+=floor((titleRect.size.height-titleSize.height)/2);
    titleRect.size.height=titleSize.height;
-
+	titleRect.origin.x += 3; // the title is way to tight to the left edge otherwise
    switch(imagePosition){
 
     case NSNoImage:

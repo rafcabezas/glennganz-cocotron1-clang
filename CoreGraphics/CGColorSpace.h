@@ -19,6 +19,7 @@ typedef enum {
 } CGColorRenderingIntent;
 
 typedef enum {
+   kCGColorSpaceModelUnknown = -1,
    kCGColorSpaceModelMonochrome,
    kCGColorSpaceModelRGB,
    kCGColorSpaceModelCMYK,
@@ -38,4 +39,3 @@ COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreatePattern(CGColorSpaceRef ba
 
 COREGRAPHICS_EXPORT CGColorSpaceModel CGColorSpaceGetModel(CGColorSpaceRef self);
 COREGRAPHICS_EXPORT size_t CGColorSpaceGetNumberOfComponents(CGColorSpaceRef self);
-COREGRAPHICS_EXPORT CFStringRef CGColorSpaceCopyName(CGColorSpaceRef cs);

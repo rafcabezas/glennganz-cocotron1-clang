@@ -134,6 +134,13 @@ static NSMapTable *_globalNameToClass=NULL;
    [[_plistStack lastObject] setObject:[NSNumber numberWithInt:value] forKey:key];
 }
 
+-(void)encodeInteger:(NSInteger)value forKey:(NSString *)key {
+    if(_pass==0)
+        return;
+    
+    [[_plistStack lastObject] setObject:[NSNumber numberWithInteger:value] forKey:key];
+}
+
 -(void)encodeInt32:(int32_t)value forKey:(NSString *)key {
    if(_pass==0)
     return;
@@ -210,7 +217,7 @@ static NSMapTable *_globalNameToClass=NULL;
     uid=[NSNumber numberWithUnsignedInteger:[_objects count]];
     NSMapInsert(_objectToUid,object,uid);
     
-    NSString *archClass = NSStringFromClass([object classForArchiver]);
+    NSString *archClass = NSStringFromClass([object classForKeyedArchiver]);
     
     //NSLog(@"uid %@: encoding class %@ as '%@'", uid, [object class], archClass);
     
@@ -237,7 +244,7 @@ static NSMapTable *_globalNameToClass=NULL;
 		
 	NSMutableArray *supers = [[NSMutableArray alloc] init];
 	[supers addObject:archClass];
-	Class sup = class_getSuperclass([object classForArchiver]);
+	Class sup = class_getSuperclass([object classForKeyedArchiver]);
 	while( sup != nil )
 	{
 		[supers addObject:NSStringFromClass(sup)];
@@ -276,8 +283,11 @@ static NSMapTable *_globalNameToClass=NULL;
 -(void)encodeConditionalObject:object forKey:(NSString *)key {
    if(_pass==0)
     return;
-    
-   [self encodeObject:object forKey:key];
+	
+    // Only encode the object if it's already somewhere
+    if (NSMapGet(_objectToUid,object)) {
+        [self encodeObject:object forKey:key];
+    }
 }
 
 

@@ -16,7 +16,6 @@
    return (O2Glyph)(int)NSMapGet(_nameToGlyph,name);
 }
 
-#if 0
 O2FontRef O2FontCreateWithFontName_platform(NSString *name) {
    return nil;
 }
@@ -24,5 +23,5 @@ O2FontRef O2FontCreateWithFontName_platform(NSString *name) {
 O2FontRef O2FontCreateWithDataProvider_platform(O2DataProviderRef provider) {
    return nil;
 }
-#endif
+
 @end

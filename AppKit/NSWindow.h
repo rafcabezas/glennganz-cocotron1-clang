@@ -23,6 +23,7 @@ enum {
    NSMiniaturizableWindowMask=0x04,
    NSResizableWindowMask=0x08,
    NSTexturedBackgroundWindowMask=0x100,
+   NSMenulessWindowMask=0x400,
 };
 
 typedef enum {

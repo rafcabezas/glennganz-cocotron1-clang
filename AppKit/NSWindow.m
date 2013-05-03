@@ -73,6 +73,65 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(void)_setKeyWindow:(NSWindow *)window;
 @end
 
+@interface _NSKeyViewPosition : NSObject {
+    NSView *_view;
+    NSRect  _rect;
+}
+
++(NSArray *)sortedKeyViewPositionsWithView:(NSView *)view;
+
+-initWithView:(NSView *)view;
+
+-(NSView *)view;
+
+-(NSComparisonResult)compareKeyViewPosition:(_NSKeyViewPosition *)other;
+
+@end
+
+@implementation _NSKeyViewPosition
+
++(void)addKeyViewPositionsWithView:(NSView *)view toArray:(NSMutableArray *)array {
+    [array addObject:[[[_NSKeyViewPosition alloc] initWithView:view] autorelease]];
+    
+    for(NSView *child in [view subviews])
+        [self addKeyViewPositionsWithView:child toArray:array];
+}
+
++(NSArray *)sortedKeyViewPositionsWithView:(NSView *)view {
+    NSMutableArray *result=[NSMutableArray array];
+    
+    [self addKeyViewPositionsWithView:view toArray:result];
+    [result sortUsingSelector:@selector(compareKeyViewPosition:)];
+    
+    return result;
+}
+
+-initWithView:(NSView *)view {
+    _view=view;
+    _rect=[[_view superview] convertRect:[_view frame] toView:nil];
+    return self;
+}
+
+-(NSView *)view {
+    return _view;
+}
+
+-(NSComparisonResult)compareKeyViewPosition:(_NSKeyViewPosition *)other {
+
+    // Sort by larger Y (cartesian coordinates)
+    if(NSMaxY(_rect)<NSMaxY(other->_rect))
+        return NSOrderedDescending;
+    else {    
+        // Then sort by smaller X
+        if(NSMinX(_rect)<NSMinX(other->_rect))
+            return NSOrderedAscending;
+        else
+            return NSOrderedDescending;
+    }
+}
+
+@end
+
 @implementation NSWindow
 
 +(NSWindowDepth)defaultDepthLimit {
@@ -81,6 +140,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 /* This method is Cococtron specific and can be override by subclasses, do not change method name */
 +(BOOL)hasMainMenuForStyleMask:(NSUInteger)styleMask {
+    if(styleMask&NSMenulessWindowMask)
+        return NO;
+    
     if(styleMask&NSTitledWindowMask)
         return YES;
     
@@ -173,7 +235,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    _backingType=backing;
    _level=NSNormalWindowLevel;
    _minSize=NSMakeSize(0,0);
-   _maxSize=NSMakeSize(0,0);
+	// "The default maximum size of a window is {FLT_MAX, FLT_MAX}"
+   _maxSize=NSMakeSize(FLT_MAX,FLT_MAX);
 
    _title=@"";
    _miniwindowTitle=@"";
@@ -182,7 +245,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     if([self hasMainMenu]){
     NSRect frame=NSMakeRect(contentViewFrame.origin.x,NSMaxY(contentViewFrame),contentViewFrame.size.width,[NSMainMenuView menuHeight]);
 
-    _menu=[[NSApp mainMenu] copy];
+		// We all need to share the main menu!
+    _menu=[[NSApp mainMenu] retain];
 
     _menuView=[[NSMainMenuView alloc] initWithFrame:frame menu:_menu];
     [_menuView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
@@ -214,7 +278,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    _isDocumentEdited=NO;
 
    _makeSureIsOnAScreen=YES;
-   _excludedFromWindowsMenu=NO;
 
    _acceptsMouseMovedEvents=NO;
    _excludedFromWindowsMenu=NO;
@@ -239,8 +302,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
    [_backgroundView addSubview:_contentView];
    [_backgroundView setNeedsDisplay:YES];
-   [[NSApplication sharedApplication] _addWindow:self];
-
+	if (!(_styleMask & NSAppKitPrivateWindow)) {
+		[[NSApplication sharedApplication] _addWindow:self];
+	}
    return self;
 }
 
@@ -296,19 +360,19 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
   There are issues when creating a Win32 handle on a non-main thread, so we always do it on the main thread
  */
 -(void)_createPlatformWindowOnMainThread {
-   if(_platformWindow==nil){
-    if([self isKindOfClass:[NSPanel class]])
-     _platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType] retain];
-    else
-     _platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType] retain];
-
-    [_platformWindow setDelegate:self];
-    [_platformWindow setLevel:_level];
-
-    [self _updatePlatformWindowTitle];
-
-    [[NSDraggingManager draggingManager] registerWindow:self dragTypes:nil];
-   }
+	if(_platformWindow==nil){
+		if([self isKindOfClass:[NSPanel class]])
+			_platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType] retain];
+		else
+			_platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType] retain];
+		
+		[_platformWindow setDelegate:self];
+		[_platformWindow setLevel:_level];
+		
+		[self _updatePlatformWindowTitle];
+		
+		[[NSDraggingManager draggingManager] registerWindow:self dragTypes:nil];
+	}
 }
 
 -(CGWindow *)platformWindow {
@@ -478,7 +542,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(BOOL)worksWhenModal {
-   return NO;
+	// We do work when we're running a modal session
+	return (_sheetContext && [_sheetContext modalSession] != nil);
 }
 
 -(BOOL)isSheet {
@@ -522,7 +587,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(BOOL)autorecalculatesKeyViewLoop {
-   return _autorecalculatesKeyViewLoop;
+    return _autorecalculatesKeyViewLoop;
 }
 
 -(BOOL)canHide {
@@ -694,7 +759,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     }
 
        if(changed){
-     [self setFrame:frame display:YES];
+        [self setFrame:frame display:YES];
        }
        
     _makeSureIsOnAScreen=NO;
@@ -846,7 +911,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    NSRect frame=[self frame];
 
    frame.origin=point;
-   [self setFrame:frame display:YES];
+   [self setFrame:frame display:NO];
 }
 
 -(void)setFrameTopLeftPoint:(NSPoint)point {
@@ -855,7 +920,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    frame.origin.x=point.x;
    frame.origin.y=point.y-frame.size.height;
 
-   [self setFrame:frame display:YES];
+   [self setFrame:frame display:NO];
 }
 
 -(void)setMinSize:(NSSize)size {
@@ -980,6 +1045,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)setBackgroundColor:(NSColor *)color {
+   if (color==nil) color = [NSColor windowBackgroundColor];
    color=[color copy];
    [_backgroundColor release];
    _backgroundColor=color;
@@ -1088,7 +1154,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)setAutorecalculatesKeyViewLoop:(BOOL)value {
-   _autorecalculatesKeyViewLoop=value;
+    _autorecalculatesKeyViewLoop=value;
 }
 
 -(void)setCanHide:(BOOL)value {
@@ -1367,11 +1433,13 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(BOOL)canBecomeKeyWindow {
-   return YES;
+	// The NSWindow implementation returns YES if the window has a title bar or a resize bar, or NO otherwise
+    return (_styleMask & (NSTitledWindowMask|NSResizableWindowMask)) != 0;
 }
 
 -(BOOL)canBecomeMainWindow {
-    return YES;
+	// The NSWindow implementation returns YES if the window is visible and has a title bar or a resize mechanism. Otherwise it returns NO
+    return [self isVisible] && (_styleMask & (NSTitledWindowMask|NSResizableWindowMask));
 }
 
 -(BOOL)canBecomeVisibleWithoutLogin {
@@ -1429,8 +1497,22 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(NSRect)constrainFrameRect:(NSRect)rect toScreen:(NSScreen *)screen {
-   NSUnimplementedMethod();
-   return NSMakeRect(0,0,0,0);
+   if ( !screen) return rect;
+   NSRect visRect = [screen visibleFrame];
+
+   if (NSMaxX(rect) > NSMaxX(visRect)) {
+    rect.origin.x = NSMaxX(visRect) - rect.size.width;
+   }
+   if (NSMaxY(rect) > NSMaxY(visRect)) {
+    rect.origin.y = NSMaxY(visRect) - rect.size.height;
+   }
+   if (NSMinX(rect) < NSMinX(visRect)) {
+    rect.origin.x = NSMinX(visRect);
+   }
+   if (NSMinY(rect) < NSMinY(visRect)) {
+    rect.origin.y = NSMinY(visRect);
+   }
+   return rect;
 }
 
 -(NSWindow *)parentWindow {
@@ -1502,12 +1584,25 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)makeKeyWindow {
-   [[self platformWindow] makeKey];
-   
-   if(!_hasBeenOnScreen){
-    _hasBeenOnScreen=YES;
-   [self makeFirstResponder:[self initialFirstResponder]];
-}
+    [[self platformWindow] makeKey];
+    
+    if(!_hasBeenOnScreen){
+        _hasBeenOnScreen=YES;
+        
+        // Ref. http://www.cocoadev.com/index.pl?KeyViewLoopGuidelines
+        
+        // If there is an initial first responder there is a manual key view loop and we don't calculate one
+        if([self initialFirstResponder]!=nil)
+            [self makeFirstResponder:[self initialFirstResponder]];
+        else {
+            // otherwise calculate one and set the first responder
+            
+            [self recalculateKeyViewLoop];
+            
+            if([self firstResponder]==self)
+                [self makeFirstResponder:[_contentView nextValidKeyView]];
+        }
+    }
 }
 
 -(void)makeMainWindow {
@@ -1515,6 +1610,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)becomeKeyWindow {
+	
+	// The platform should always be told to become key when we want to 
+	// become key
+	[self makeKeyWindow];
+	
    if([self isKeyWindow]) // if we don't return early we may resign ourself
     return;
 
@@ -1579,6 +1679,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 -(void)selectKeyViewFollowingView:(NSView *)view {
    NSView *next=[view nextValidKeyView];
+      
    [self makeFirstResponder:next];
 }
 
@@ -1588,8 +1689,30 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    [self makeFirstResponder:next];
 }
 
+-(void)recalculateKeyViewLoopIfNeeded {
+    if(YES){
+      //  _needsKeyViewLoop=NO;
+        
+        NSArray *sorted=[_NSKeyViewPosition sortedKeyViewPositionsWithView:_contentView];
+        NSUInteger i,count=[sorted count];
+        
+        for(i=0;i<count;i++){
+            _NSKeyViewPosition *position=[sorted objectAtIndex:i];
+            
+            if(i+1<count){
+                [[position view] setNextKeyView:[[sorted objectAtIndex:i+1] view]];
+            }
+            else {
+                [[position view] setNextKeyView:[[sorted objectAtIndex:0] view]];
+            }
+        }
+    }
+}
+
 -(void)recalculateKeyViewLoop {
-//   NSUnimplementedMethod();
+    //_needsKeyViewLoop=YES;
+    // This should be deferred
+    [self recalculateKeyViewLoopIfNeeded];
 }
 
 -(NSSelectionDirection)keyViewSelectionDirection {
@@ -1641,12 +1764,13 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)setViewsNeedDisplay:(BOOL)flag {
-   _viewsNeedDisplay=flag;
-   if(flag){
+   if(flag && !_viewsNeedDisplay){
     // NSApplication does a _displayAllWindowsIfNeeded before every event, but there are some things which wont generate
-    // an event such as performOnMainThread, so we do the callout here too. There is probably a better way to do this
-    [[NSRunLoop currentRunLoop] performSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil order:0 modes:[NSArray arrayWithObject:NSDefaultRunLoopMode]];
-}
+    // an event such as performOnMainThread, so we do the callout here too. There is probably a better way to do this	   
+	   [[NSRunLoop currentRunLoop] cancelPerformSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil]; // Be sure we don't accumulate unneeded perform operations
+	   [[NSRunLoop currentRunLoop] performSelector:@selector(_displayAllWindowsIfNeeded) target:NSApp argument:nil order:0 modes:[NSArray arrayWithObjects:NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode, nil]];
+   }
+	_viewsNeedDisplay=flag;
 }
 
 -(void)disableFlushWindow {
@@ -1684,6 +1808,18 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    if([self isVisible] && ![self isMiniaturized] && [self viewsNeedDisplay]){
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
 
+	if ([NSGraphicsContext quartzDebuggingIsEnabled] == YES) {
+
+		// Show all the views getting redrawn
+	   [NSGraphicsContext setQuartzDebugMode: YES];
+	   [self disableFlushWindow];
+	   [_backgroundView displayIfNeeded];
+	   [self enableFlushWindow];
+	   [self flushWindowIfNeeded];
+	}
+
+	[NSGraphicsContext setQuartzDebugMode: NO];
+	   
     [self disableFlushWindow];
     [_backgroundView displayIfNeeded];
     [self enableFlushWindow];
@@ -1698,7 +1834,20 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
  */
    if([self isVisible]){
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
-    [self disableFlushWindow];
+
+	if ([NSGraphicsContext quartzDebuggingIsEnabled] == YES) {
+
+		// Show all the views getting redrawn
+	   [NSGraphicsContext setQuartzDebugMode: YES];
+	   [self disableFlushWindow];
+	   [_backgroundView display];
+	   [self enableFlushWindow];
+	   [self flushWindowIfNeeded];
+	}
+
+	[NSGraphicsContext setQuartzDebugMode: NO];
+
+	[self disableFlushWindow];
     [_backgroundView display];
     [self enableFlushWindow];
     [self flushWindowIfNeeded];
@@ -1968,15 +2117,16 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
                 default:
                     break;
             }
+			return;
         }
         else if ([event type] == NSPlatformSpecific){
             //[self _setSheetOriginAndFront];
             [_platformWindow sendEvent:[(NSEvent_CoreGraphics *)event coreGraphicsEvent]];
+			return;
         }
-
-        return;
     }
 
+	// OK let's see if anyone else wants it
    switch([event type]){
 
     case NSLeftMouseDown:{
@@ -2160,7 +2310,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
    [self orderWindow:NSWindowAbove relativeTo:0];
 
-   [self makeKeyWindow];
+	if([self canBecomeKeyWindow])
+		[self makeKeyWindow];
 
    if([self canBecomeMainWindow])
     [self makeMainWindow];
@@ -2247,6 +2398,15 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 	NSRect zoomedFrame = [self zoomedFrame];
 	if (NSEqualRects( _frame, zoomedFrame )) zoomedFrame = _savedFrame;
 	
+	// Make sure we obey our minimums
+	NSSize minSize = [self minSize];
+	if (NSWidth(zoomedFrame) < minSize.width) {
+		zoomedFrame.size.width = minSize.width;
+	}
+	if (NSHeight(zoomedFrame) < minSize.height) {
+		zoomedFrame.size.height = minSize.height;
+	}
+	
 	BOOL shouldZoom = YES;
 	if (_delegate && [_delegate respondsToSelector: @selector( windowShouldZoom:toFrame: )]) {
 		shouldZoom = [_delegate windowShouldZoom: self toFrame: zoomedFrame];
@@ -2258,6 +2418,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 		_savedFrame = [self frame];
 		[self setFrame: zoomedFrame display: YES];
 	}
+}
+
+-(void)platformWindowShouldZoom:(CGWindow *)window {
+    [self zoom:nil];
 }
 
 -(void)miniaturize:sender {
@@ -2395,7 +2559,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     [self _resizeWithOldMenuViewSize:oldSize];
    }
 
-   _menu=[menu copy];
+	[menu retain];
+	[_menu release];
+   _menu = menu;
 }
 
 -(NSMenu *)menu {
@@ -2404,6 +2570,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 -(BOOL)_isActive {
    return _isActive;
+}
+
+-(void)_setVisible:(BOOL)visible;
+{
+	_isVisible = visible;
 }
 
 // default NSDraggingDestination
@@ -2489,6 +2660,13 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    [self makeKeyWindow];
 }
 
+- (void)_setSheetContext:(NSSheetContext *)sheetContext
+{
+	[sheetContext retain];
+	[_sheetContext release];
+	_sheetContext = sheetContext;
+}
+
 -(NSSheetContext *)_sheetContext {
    return _sheetContext;
 }
@@ -2517,7 +2695,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    [_drawers makeObjectsPerformSelector:@selector(parentWindowDidActivate:) withObject:self];
 
    _isActive=YES;
-   if([self canBecomeKeyWindow] && ![self isKeyWindow])
+   if([self canBecomeKeyWindow])
     [self becomeKeyWindow];
    if([self canBecomeMainWindow] && ![self isMainWindow])
     [self becomeMainWindow];
@@ -2560,8 +2738,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)platformWindowMiniaturized:(CGWindow *)window {
-   _isActive=NO;
-
+    _isActive=NO;
+    
    [self _updatePlatformWindowTitle];
    if(_sheetContext!=nil){
     [[_sheetContext sheet] orderWindow:NSWindowOut relativeTo:0];
@@ -2582,7 +2760,21 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)platformWindow:(CGWindow *)window frameChanged:(NSRect)frame didSize:(BOOL)didSize {
-   _frame=frame;
+    // Don't allow the platform window changes to violate our window size limits (if we have them)
+    // Windows (for example) likes to make the platform window very small so it fits in the task bar...
+    if (NSEqualSizes([self minSize], NSMakeSize(0, 0)) == NO) {
+       frame.size.width = MAX(NSWidth(frame), [self minSize].width);
+       frame.size.height = MAX(NSHeight(frame), [self minSize].height);
+    }
+
+    if (NSEqualSizes([self maxSize], NSMakeSize(FLT_MAX, FLT_MAX)) == NO) {
+       frame.size.width = MIN(NSWidth(frame), [self maxSize].width);
+       frame.size.height = MIN(NSHeight(frame), [self maxSize].height);
+    }
+
+    // We don't want the miniaturized frame.
+   if(![self isMiniaturized])
+    _frame=frame;
    
    _makeSureIsOnAScreen=YES;
 
@@ -2590,11 +2782,16 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidChangeFrame:) withObject:self];
    [_drawers makeObjectsPerformSelector:@selector(parentWindowDidChangeFrame:) withObject:self];
 
-   [_backgroundView setFrameSize:_frame.size];
-   [_backgroundView setNeedsDisplay:YES];
+	if (didSize) {
+		// Don't redraw everything unless we really have to
+		[_backgroundView setFrameSize:_frame.size];
+		[_backgroundView setNeedsDisplay:YES];
+		
+		// And make sure the cursor rect align with the new size
+		[self resetCursorRects];
+	}
 
    [self saveFrameUsingName:_autosaveFrameName];
-   [self resetCursorRects];
    
    if(didSize){
     [self postNotificationName:NSWindowDidResizeNotification];
@@ -2636,7 +2833,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)platformWindowDidEndSizing:(CGWindow *)window {
-   [_backgroundView viewDidEndLiveResize];
+	[_backgroundView viewDidEndLiveResize];
    [self postNotificationName:NSWindowDidEndLiveResizeNotification];
 }
 
@@ -2692,32 +2889,37 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     BOOL mouseIsInside=NSPointInRect(mousePoint,[area _rectInWindow]);
     id owner=[area owner];
 
-    if([area _isToolTip]==YES){
-     NSToolTipWindow *toolTipWindow=[NSToolTipWindow sharedToolTipWindow];
-
-     if([self isKeyWindow]==NO || [self _sheetContext]!=nil)
-      mouseIsInside=NO;
-
-     if(mouseWasInside==YES && mouseIsInside==NO && [toolTipWindow _trackingArea]==area){
-      [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
-      [toolTipWindow orderOut:nil];
-     }
-     if(mouseWasInside==NO && mouseIsInside==YES){ // AllowsToolTipsWhenApplicationIsInactive
-                                                   // is handled when rebuilding areas.
-      [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
-      [toolTipWindow orderOut:nil];
-
-      if([owner respondsToSelector:@selector(view:stringForToolTip:point:userData:)]==YES)
-       [toolTipWindow setToolTip:[owner view:[area _view] stringForToolTip:area point:mousePoint userData:[area userInfo]]];
-      else
-       [toolTipWindow setToolTip:[owner description]];
-      // This gives us some protection when ToolTip areas overlap:
-      [toolTipWindow _setTrackingArea:area];
-
-      raiseToolTipWindow=YES;
-     }
-    }
-    else{ // not ToolTip
+	   if([area _isToolTip]==YES){
+		   NSToolTipWindow *toolTipWindow=[NSToolTipWindow sharedToolTipWindow];
+		   
+		   if([self isKeyWindow]==NO || [self _sheetContext]!=nil)
+			   mouseIsInside=NO;
+		   
+		   if(mouseWasInside==YES && mouseIsInside==NO && [toolTipWindow _trackingArea]==area){
+			   [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
+			   [toolTipWindow orderOut:nil];
+		   }
+		   if(mouseWasInside==NO && mouseIsInside==YES){ // AllowsToolTipsWhenApplicationIsInactive
+			   // is handled when rebuilding areas.
+			   [NSObject cancelPreviousPerformRequestsWithTarget:toolTipWindow selector:@selector(orderFront:) object:nil];
+			   [toolTipWindow orderOut:nil];
+			   NSString *tooltip = nil;
+			   
+			   if([owner respondsToSelector:@selector(view:stringForToolTip:point:userData:)]==YES) {
+				   NSPoint pt =[[area _view] convertPoint:mousePoint fromView:nil];
+				   tooltip = [owner view:[area _view] stringForToolTip:area point:pt userData:[area userInfo]];
+			   } else {
+				   tooltip = [owner description];
+			   }
+			   [toolTipWindow setToolTip:tooltip];
+			   
+			   // This gives us some protection when ToolTip areas overlap:
+			   [toolTipWindow _setTrackingArea:area];
+			   
+			   raiseToolTipWindow=YES;
+		   }
+	   }
+	   else{ // not ToolTip
      NSTrackingAreaOptions options=[area options];
 
      // Options by view activation.
@@ -2869,7 +3071,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return cursorIsSet;
 }
 
--(NSUndoManager *)undoManager {
+-(NSUndoManager *)undoManager {    
     if ([_delegate respondsToSelector:@selector(windowWillReturnUndoManager:)])
         return [_delegate windowWillReturnUndoManager:self];
     
@@ -2882,7 +3084,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     //  If the delegate does not implement this method, the NSWindow creates an NSUndoManager for the window and all its views. -- seems like some duplication vs. NSDocument, but oh well..
     if (_undoManager == nil){
         _undoManager = [[NSUndoManager alloc] init];
-        [_undoManager setRunLoopModes:[NSArray arrayWithObjects:NSDefaultRunLoopMode, NSEventTrackingRunLoopMode,nil]];
+        [_undoManager setRunLoopModes:[NSArray arrayWithObjects:NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode,nil]];
     }
 
     return _undoManager;
@@ -2918,18 +3120,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 -(NSView *)_backgroundView {
     return _backgroundView;
-}
-
--(NSInteger)orderedIndex {
-   NSInteger result=[[NSApp orderedWindows] indexOfObjectIdenticalTo:self];
-   
-   /* Documentation says orderedIndex is zero based, but tests say it is 1 based
-      Possible there is a window at 0 which is not in -[NSApp windows] ? Either way, available windows are 1 based.
-    */
-   if(result!=NSNotFound)
-    result+=1;
-
-   return result;
 }
 
 @end

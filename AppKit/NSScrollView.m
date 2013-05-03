@@ -23,7 +23,9 @@ static Class _rulerViewClass = nil;
 
 +(void)initialize
 {
-    _rulerViewClass = [NSRulerView class];
+    if (self == [NSScrollView class]) {
+        _rulerViewClass = [NSRulerView class];
+    }
 }
 
 +(NSSize)frameSizeForContentSize:(NSSize)contentSize hasHorizontalScroller:(BOOL)hasHorizontalScroller hasVerticalScroller:(BOOL)hasVerticalScroller borderType:(NSBorderType)borderType {
@@ -107,7 +109,6 @@ static Class _rulerViewClass = nil;
     NSKeyedUnarchiver *keyed=(NSKeyedUnarchiver *)coder;
     unsigned           flags=[keyed decodeIntForKey:@"NSsFlags"];
     
-    _drawsBackground=NO; // FIXME: this is in the nib
     _hasVerticalScroller=(flags&0x10)?YES:NO;
     _hasHorizontalScroller=(flags&0x20)?YES:NO;
     _autohidesScrollers=(flags&0x200)?YES:NO;
@@ -122,11 +123,28 @@ static Class _rulerViewClass = nil;
     _headerClipView=[[keyed decodeObjectForKey:@"NSHeaderClipView"] retain];
     _cornerView=[[keyed decodeObjectForKey:@"NSCornerView"] retain];
     _backgroundColor=[[NSColor controlBackgroundColor] copy];
-    // scroll amounts in NSScrollAmts
-    _verticalLineScroll=1.0;
+    
+    BOOL copyOnScroll=(flags&0x80)?YES:NO;
+    if (copyOnScroll) {
+        _drawsBackground = YES;
+        [_clipView setDrawsBackground:YES];
+        [_clipView setCopiesOnScroll:YES];
+    } else {
+        _drawsBackground = [_clipView drawsBackground];
+    }
+
+    _verticalLineScroll=10.0;  // the default value in IB is 10
     _verticalPageScroll=10.0;
-    _horizontalLineScroll=1.0;
+    _horizontalLineScroll=10.0;
     _verticalLineScroll=10.0;
+    id scrollAmts = [keyed decodeObjectForKey:@"NSScrollAmts"];
+    if ([scrollAmts isKindOfClass:[NSData class]] && [scrollAmts length] == 4*sizeof(NSSwappedFloat)) {
+        NSSwappedFloat *amts = (NSSwappedFloat *)[scrollAmts bytes];
+        _horizontalPageScroll = NSSwapBigFloatToHost(amts[0]);
+        _verticalPageScroll = NSSwapBigFloatToHost(amts[1]);
+        _horizontalLineScroll = NSSwapBigFloatToHost(amts[2]);
+        _verticalLineScroll = NSSwapBigFloatToHost(amts[3]);
+    }
    }
    else {
     [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
@@ -216,10 +234,8 @@ static Class _rulerViewClass = nil;
     NSRect result=[self insetBounds];
     
     result.size.height = [_horizontalRuler requiredThickness];
-    if ([self hasVerticalRuler]) {
-        result.origin.x += [_verticalRuler requiredThickness];
-        result.size.width -= [_verticalRuler requiredThickness];
-    }
+
+    // The horizontal ruler spans the entire width of the scrollview
     
     return result;
 }
@@ -228,7 +244,8 @@ static Class _rulerViewClass = nil;
     NSRect result=[self insetBounds];
     
     result.size.width = [_verticalRuler requiredThickness];
-    if ([self hasHorizontalRuler]) {
+    if ([self rulersVisible] && [self hasHorizontalRuler]) {
+        // The vertical ruler is positioned below the horizontal ruler
         result.origin.y += [_horizontalRuler requiredThickness];
         result.size.height -= [_horizontalRuler requiredThickness];
     }
@@ -283,7 +300,7 @@ static Class _rulerViewClass = nil;
        result.origin.y+=[self headerClipViewFrame].size.height;
        result.size.height-=[self headerClipViewFrame].size.height;
    }
-   if ([self rulersVisible] && _horizontalRuler != nil) {
+    if([self rulersVisible] && [self hasHorizontalRuler]) {
        result.origin.y+=[_horizontalRuler requiredThickness];
        result.size.height-=[_horizontalRuler requiredThickness];
    }
@@ -303,7 +320,7 @@ static Class _rulerViewClass = nil;
 
    result.size.height=[NSScroller scrollerWidth];
 
-   if ([self rulersVisible] && _verticalRuler != nil) {
+    if([self rulersVisible] && [self hasVerticalRuler]) {
        result.origin.x+=[_verticalRuler requiredThickness];
        result.size.width-=[_verticalRuler requiredThickness];
    }
@@ -457,6 +474,34 @@ static Class _rulerViewClass = nil;
 -(NSRulerView *)verticalRulerView
 {
     return _verticalRuler;
+}
+
+- (void)setVerticalRulerView:(NSRulerView *)ruler
+{
+    ruler = [ruler retain];
+    if (_verticalRuler) {
+        [_verticalRuler removeFromSuperview];
+        [_verticalRuler release];
+    }
+    _verticalRuler = ruler;
+    [_verticalRuler setScrollView:self];
+    [_verticalRuler setOrientation:NSVerticalRuler];
+    [self addSubview:_verticalRuler];
+    [self tile];
+}
+
+- (void)setHorizontalRulerView:(NSRulerView *)ruler
+{
+    ruler = [ruler retain];
+    if (_horizontalRuler) {
+        [_horizontalRuler removeFromSuperview];
+        [_horizontalRuler release];
+    }
+    _horizontalRuler = ruler;
+    [_horizontalRuler setScrollView:self];
+    [_horizontalRuler setOrientation:NSHorizontalRuler];
+    [self addSubview:_horizontalRuler];
+    [self tile];
 }
 
 -(NSRulerView *)horizontalRulerView
@@ -699,9 +744,14 @@ static Class _rulerViewClass = nil;
    frame=[self cornerViewFrame];
    [_cornerView setFrame:frame];
 
-   [_verticalScroller setFrame:[self verticalScrollerFrame]];
-   [_horizontalScroller setFrame:[self horizontalScrollerFrame]];
-   [_clipView setFrame:[self clipViewFrame]];
+    frame = [self verticalScrollerFrame];
+   [_verticalScroller setFrame:frame];
+
+    frame = [self horizontalScrollerFrame];
+   [_horizontalScroller setFrame:frame];
+    
+    frame = [self clipViewFrame];
+   [_clipView setFrame:frame];
 
    frame=[self horizontalRulerFrame];
    [_horizontalRuler setFrame:frame];
@@ -772,7 +822,9 @@ static Class _rulerViewClass = nil;
     [_horizontalScroller setFrame:[self horizontalScrollerFrame]];
     [_clipView setFrame:[self clipViewFrame]];
 
-
+    [_horizontalRuler invalidateHashMarks];
+    [_verticalRuler invalidateHashMarks];
+       
     // keep the header in line with the document
     // using scrollToPoint: ran into some ordering issues, since scrollToPoint calls
     // constrainScrollPoint *and* this method.

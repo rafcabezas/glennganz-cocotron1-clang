@@ -109,9 +109,17 @@ enum {
    BOOL	     _isContinuous;
    BOOL      _allowsMixedState;
    BOOL      _sendsActionOnEndEditing;
+    BOOL    _hasValidObjectValue;
 }
 
+#pragma mark -
+#pragma mark Class Methods
+
 +(NSFocusRingType)defaultFocusRingType;
++(NSMenu *)defaultMenu;
++(BOOL)prefersTrackingUntilMouseUp;
+
+#pragma mark -
 
 -initTextCell:(NSString *)string;
 -initImageCell:(NSImage *)image;
@@ -144,11 +152,13 @@ enum {
 -(BOOL)refusesFirstResponder;
 -(BOOL)isHighlighted;
 
+-(BOOL)hasValidObjectValue;
 -objectValue;
 -(NSString *)stringValue;
 -(int)intValue;
 -(float)floatValue;
 -(double)doubleValue;
+-(NSInteger)integerValue;
 -(NSAttributedString *)attributedStringValue;
 -(id)representedObject;
 -(NSControlSize)controlSize;
@@ -195,16 +205,19 @@ enum {
 -(void)setIntValue:(int)value;
 -(void)setFloatValue:(float)value;
 -(void)setDoubleValue:(double)value;
+-(void)setIntegerValue:(NSInteger)value;
 -(void)setAttributedStringValue:(NSAttributedString *)value;
 -(void)setRepresentedObject:(id)object;
 -(void)setControlSize:(NSControlSize)size;
 -(void)setFocusRingType:(NSFocusRingType)focusRingType;
 -(void)setBackgroundStyle:(NSBackgroundStyle)value;
 
--(void)takeObjectValueFrom:sender;
--(void)takeStringValueFrom:sender;
--(void)takeIntValueFrom:sender;
--(void)takeFloatValueFrom:sender;
+-(void)takeObjectValueFrom:(id)sender;
+-(void)takeStringValueFrom:(id)sender;
+-(void)takeIntValueFrom:(id)sender;
+-(void)takeFloatValueFrom:(id)sender;
+-(void)takeDoubleValueFrom:(id)sender;
+-(void)takeIntegerValueFrom:(id)sender;
 
 -(NSSize)cellSize;
 -(NSSize)cellSizeForBounds:(NSRect)rect;

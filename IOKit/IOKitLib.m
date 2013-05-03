@@ -7,7 +7,7 @@
 #import <Foundation/NSNumber.h>
 #import <Foundation/NSData.h>
 #import <Foundation/NSDictionary.h>
-#import </Developer/Cocotron//1.0/Windows/i386/llvm-clang-trunk/i386-pc-mingw32msvc/include/windows.h>
+#import <windows.h>
 #import <Iphlpapi.h>
 
 static NSData *PrimaryEthernetMAC(){
@@ -154,9 +154,7 @@ io_object_t IOIteratorNext(io_iterator_t iterator) {
 }
 
 kern_return_t IORegistryEntryGetParentEntry(io_registry_entry_t entry,const io_name_t plane,io_registry_entry_t *parent) {
-    
-    
-    *parent = [entry createParentEntry:CFStringMakeConstant(plane)];
+   *parent=[entry createParentEntry:CFSTR(plane)];
    return 0;
 }
 

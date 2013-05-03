@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSTextContainer.h>
 #import <AppKit/NSLayoutManager.h>
 #import <AppKit/NSTextView.h>
+#import <AppKit/NSTextStorage.h>
 #import <Foundation/NSKeyedArchiver.h>
 #import <AppKit/NSRaise.h>
 
@@ -43,6 +44,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return self;
 }
 
+- (void)dealloc
+{
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[super dealloc];
+}
 -(NSSize)containerSize {
    return _size;
 }
@@ -79,12 +85,50 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [_textView setTextContainer:self];
 }
 
+-(void)_textViewFrameDidChange:(NSNotification *)notification
+{
+	if ([notification object] == _textView) {
+		NSSize newSize = [_textView frame].size;
+		[self setContainerSize:newSize];
+	}
+}
+
 -(void)setWidthTracksTextView:(BOOL)flag {
-   _widthTracksTextView=flag;
+	if (flag != _widthTracksTextView) {
+		_widthTracksTextView=flag;
+		if (_textView) {
+			if (_widthTracksTextView) {
+				if (_heightTracksTextView == NO) {
+					// Observe our textView frame changes
+					[_textView setPostsFrameChangedNotifications:YES];
+					[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_textViewFrameDidChange:) name:NSViewFrameDidChangeNotification object:_textView];
+				}
+			} else {
+				if (_heightTracksTextView == NO) {
+					[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:_textView];
+				}
+			}
+		}
+	}
 }
 
 -(void)setHeightTracksTextView:(BOOL)flag {
-   _heightTracksTextView=flag;
+	if (flag != _heightTracksTextView) {
+		_heightTracksTextView=flag;
+		if (_textView) {
+			if (_heightTracksTextView) {
+				if (_widthTracksTextView == NO) {
+					// Observe our textView frame changes
+					[_textView setPostsFrameChangedNotifications:YES];
+					[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_textViewFrameDidChange:) name:NSViewFrameDidChangeNotification object:_textView];
+				}
+			} else {
+				if (_widthTracksTextView == NO) {
+					[[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:_textView];
+				}
+			}
+		}
+	}	
 }
 
 -(void)setLayoutManager:(NSLayoutManager *)layoutManager {
@@ -92,7 +136,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)replaceLayoutManager:(NSLayoutManager *)layoutManager {
-   _layoutManager=layoutManager;
+    if (layoutManager != _layoutManager) {
+        NSLayoutManager *currentLayoutManager = _layoutManager;
+        NSArray *textContainers = [currentLayoutManager textContainers];
+
+        // Move ourself from the old layout manager to the new one
+        int count = [textContainers count];
+        for (int i = 0; i < count; ++i) {
+            NSTextContainer *container = [textContainers objectAtIndex:i];
+            if (container == self) {
+                [layoutManager addTextContainer: container];
+                [currentLayoutManager removeTextContainerAtIndex: i];
+               break;
+            }
+        }
+        
+        // Update our textStorage to use the new layout manager instead of the old one
+        NSTextStorage *textStorage = [currentLayoutManager textStorage];
+        [textStorage addLayoutManager: layoutManager];
+        [textStorage removeLayoutManager: currentLayoutManager];
+    }
 }
 
 -(void)setLineFragmentPadding:(float)padding {

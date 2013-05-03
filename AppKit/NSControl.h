@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import <AppKit/NSView.h>
 #import <AppKit/NSText.h>
+#import <AppKit/NSCell.h>
 
 @class NSCell,NSFont,NSText,NSTextView;
 
@@ -47,6 +48,7 @@ APPKIT_EXPORT NSString * const NSControlTextDidEndEditingNotification;
 -(int)intValue;
 -(float)floatValue;
 -(double)doubleValue;
+-(NSInteger)integerValue;
 
 -selectedCell;
 -(int)selectedTag;
@@ -67,19 +69,23 @@ APPKIT_EXPORT NSString * const NSControlTextDidEndEditingNotification;
 -(void)setBezeled:(BOOL)flag;
 -(void)setContinuous:(BOOL)flag;
 -(void)setRefusesFirstResponder:(BOOL)flag;
+-(void)setFormatter:(NSFormatter *)formatter;
 
 -(void)setObjectValue:(id <NSCopying>)value;
 -(void)setStringValue:(NSString *)value;
 -(void)setIntValue:(int)value;
+-(void)setIntegerValue:(NSInteger)value;
 -(void)setFloatValue:(float)value;
 -(void)setDoubleValue:(double)value;
+-(void)setIntegerValue:(NSInteger)anInteger;
 -(void)setAttributedStringValue:(NSAttributedString *)value;
 
--(void)takeObjectValueFrom:sender;
--(void)takeStringValueFrom:sender;
--(void)takeIntValueFrom:sender;
--(void)takeFloatValueFrom:sender;
--(void)takeDoubleValueFrom:sender;
+-(void)takeObjectValueFrom:(id)sender;
+-(void)takeStringValueFrom:(id)sender;
+-(void)takeIntValueFrom:(id)sender;
+-(void)takeFloatValueFrom:(id)sender;
+-(void)takeDoubleValueFrom:(id)sender;
+-(void)takeIntegerValueFrom:(id)sender;
 
 -(void)selectCell:(NSCell *)cell;
 
@@ -103,18 +109,18 @@ APPKIT_EXPORT NSString * const NSControlTextDidEndEditingNotification;
 @end
 
 @interface NSObject(NSControl_delegate)
--(BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor;
--(BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor;
 -(void)controlTextDidBeginEditing:(NSNotification *)note;
 -(void)controlTextDidChange:(NSNotification *)note;
 -(void)controlTextDidEndEditing:(NSNotification *)note;
 @end
 
 @protocol NSControlTextEditingDelegate <NSObject>
-
-// FIXME: this causes a compiler fault with ObjC++, fix compiler
-//@optional
+@optional
 -(BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)selector;
-
+-(BOOL)control:(NSControl *)control textShouldBeginEditing:(NSText *)fieldEditor;
+-(BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor;
+-(BOOL)control:(NSControl *)control didFailToFormatString:(NSString *)string errorDescription:(NSString *)error;
+-(void)control:(NSControl *)control didFailToValidatePartialString:(NSString *)string errorDescription:(NSString *)error;
+-(BOOL)control:(NSControl *)control isValidObject:(id)obj;
 @end
 

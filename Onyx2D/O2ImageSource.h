@@ -9,7 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSObject.h>
 #import <Onyx2D/O2Image.h>
 
-typedef struct _O2ImageSource *O2ImageSourceRef;
+@class O2ImageSource;
+
+typedef O2ImageSource *O2ImageSourceRef;
 
 @class NSData,NSDictionary,NSURL,O2Image,O2DataProvider;
 
@@ -23,7 +25,7 @@ extern NSString *kO2ImagePropertyDPIHeight;
 
 +(O2ImageSourceRef)newImageSourceWithDataProvider:(O2DataProvider *)provider options:(CFDictionaryRef)options;
 +(O2ImageSourceRef)newImageSourceWithData:(CFDataRef)data options:(CFDictionaryRef)options;
-+(O2ImageSourceRef)newImageSourceWitURL:(NSURL *)url options:(CFDictionaryRef)options;
++(O2ImageSourceRef)newImageSourceWithURL:(NSURL *)url options:(CFDictionaryRef)options;
 
 +(BOOL)isPresentInDataProvider:(O2DataProvider *)provider;
 

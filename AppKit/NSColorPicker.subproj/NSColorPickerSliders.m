@@ -33,35 +33,33 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      [[_grayscaleConstantsMatrix cellAtRow:0 column:i] setImage:image];
     }
 
-    [self matrixClicked:matrix];
+    [self typeChanged: typeButton];
 
     return self;
 }
 
-- (void)matrixClicked:(id)sender
+- (void)_syncSlidersToNewColor
 {
-    NSView *newView = nil;
     NSColor *color = [[self colorPanel] color];
-
-    switch ([[sender selectedCell] tag]) {
+	
+    switch ([[typeButton selectedItem] tag]) {
         case NSGrayModeColorPanel: {
             float gray, alpha;
-
+			
             color = [color colorUsingColorSpaceName:NSCalibratedWhiteColorSpace];
             [color getWhite:&gray alpha:&alpha];
-
+			
             [greyscaleSlider setIntValue:gray*100];
             [greyscaleTextField setIntValue:gray*100];
-            newView = greyscaleSubview;
             break;
         }
             
         case NSRGBModeColorPanel: {
             float red, green, blue, alpha;
-
+			
             color = [color colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
             [color getRed:&red green:&green blue:&blue alpha:&alpha];
-
+			
             [_redSlider setIntValue:red*255];
             [_greenSlider setIntValue:green*255];
             [_blueSlider setIntValue:blue*255];
@@ -69,13 +67,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             [[rgbTextFieldMatrix cellAtRow:1 column:0] setIntValue:green*255];
             [[rgbTextFieldMatrix cellAtRow:2 column:0] setIntValue:blue*255];
             
-            newView = rgbSubview;
             break;
         }
-
+			
         case NSCMYKModeColorPanel: {
             float cyan, magenta, yellow, black, alpha;
-
+			
             color = [color colorUsingColorSpaceName:NSDeviceCMYKColorSpace];
             [color getCyan:&cyan magenta:&magenta yellow:&yellow black:&black alpha:&alpha];
             
@@ -87,17 +84,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             [[cmykTextFieldMatrix cellAtRow:1 column:0] setIntValue:magenta*100];
             [[cmykTextFieldMatrix cellAtRow:2 column:0] setIntValue:yellow*100];
             [[cmykTextFieldMatrix cellAtRow:3 column:0] setIntValue:black*100];
-
-            newView = cmykSubview;
+			
             break;
         }
-
+			
         case NSHSBModeColorPanel: {
             float hue, saturation, brightness, alpha;
-
+			
             color = [color colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
             [color getHue:&hue saturation:&saturation brightness:&brightness alpha:&alpha];
-
+			
             [_hueSlider setIntValue:hue*359];
             [_saturationSlider setIntValue:saturation*100];
             [_brightnessSlider setIntValue:brightness*100];
@@ -105,6 +101,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             [[hsbTextFieldMatrix cellAtRow:1 column:0] setIntValue:saturation*100];
             [[hsbTextFieldMatrix cellAtRow:2 column:0] setIntValue:brightness*100];
             
+            break;
+        }
+            
+        default:
+            return;
+    }
+}
+
+- (void)typeChanged:(id)sender
+{
+    NSView *newView = nil;
+
+	[self _syncSlidersToNewColor];
+	
+    switch ([[sender selectedItem] tag]) {
+        case NSGrayModeColorPanel: {
+            newView = greyscaleSubview;
+            break;
+        }
+            
+        case NSRGBModeColorPanel: {
+            newView = rgbSubview;
+            break;
+        }
+			
+        case NSCMYKModeColorPanel: {
+            newView = cmykSubview;
+            break;
+        }
+			
+        case NSHSBModeColorPanel: {
             newView = hsbSubview;
             break;
         }
@@ -112,19 +139,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         default:
             return;
     }
-
+	
     if (currentView != nil)
         [newView setFrame:[currentView frame]];
-
+	
     if (currentView != newView) {
         [currentView retain];
         [currentView removeFromSuperview];
-
+		
         [sliderSubview addSubview:newView];
         currentView = [newView retain];
     }
 
+	NSColor *color = [[self colorPanel] color];
+
     [[self colorPanel] setColor:color];
+}
+
+- (void)setColor:(NSColor *)color
+{
+	[self _syncSlidersToNewColor];
 }
 
 // doesn't matter who sends these actions, the sliders or the textfields.
@@ -152,8 +186,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (NSImage *)provideNewButtonImage
 {
-   return [[matrix selectedCell] image];
-//    return [NSImage imageNamed:@"NSColorPickerSlidersRGB"];
+    return [NSImage imageNamed:@"NSColorPickerSlidersIcon"];
 }
 
 -(void)_updateRed:red green:green blue:blue {

@@ -23,7 +23,6 @@ typedef enum {
 
 CORETEXT_EXPORT CTFontRef CTFontCreateWithGraphicsFont(CGFontRef cgFont,CGFloat size,CGAffineTransform *xform,id attributes);
 CORETEXT_EXPORT CTFontRef CTFontCreateUIFontForLanguage(CTFontUIFontType uiFontType,CGFloat size,NSString *language);
-CORETEXT_EXPORT CTFontRef CTFontCreateWithName(CFStringRef name,CGFloat size,NSString *language);
 CORETEXT_EXPORT CFStringRef CTFontCopyFullName(CTFontRef self);
 CORETEXT_EXPORT CGFloat   CTFontGetSize(CTFontRef self);
 CORETEXT_EXPORT size_t    CTFontGetGlyphCount(CTFontRef self);

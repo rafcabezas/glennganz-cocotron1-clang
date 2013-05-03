@@ -90,9 +90,18 @@ ONYX2D_STATIC BOOL initFunctionsForRGBColorSpace(O2Image *self,size_t bitsPerCom
       case 24:
        switch(bitmapInfo&kO2BitmapAlphaInfoMask){
         case kO2ImageAlphaNone:
-          // FIXME: how is endian ness interpreted ?
-         self->_read_argb8u=O2ImageRead_RGB888_to_argb8u;
-         return YES;
+			   switch(bitmapInfo&kO2BitmapByteOrderMask){
+				   case kO2BitmapByteOrder16Little:
+				   case kO2BitmapByteOrder32Little:
+					   self->_read_argb8u=O2ImageRead_ABGR8888_to_argb8u;
+					   return YES;
+					   
+				   case kO2BitmapByteOrder16Big:
+				   case kO2BitmapByteOrder32Big:
+					   self->_read_argb8u=O2ImageRead_RGBA8888_to_argb8u;
+					   return YES;
+			   }
+			   return YES;
        }
        break;
        
@@ -263,9 +272,14 @@ ONYX2D_STATIC BOOL initFunctionsForParameters(O2Image *self,size_t bitsPerCompon
    self->_read_a32f=O2ImageRead_ANY_to_A8_to_Af;
    self->_read_argb32f=O2ImageRead_ANY_to_argb8u_to_argb32f;
 
-   if((bitmapInfo&kO2BitmapByteOrderMask)==kO2BitmapByteOrderDefault)
-    bitmapInfo|=kO2BitmapByteOrder32Big;
-   
+	if((bitmapInfo&kO2BitmapByteOrderMask)==kO2BitmapByteOrderDefault) {
+#ifdef __LITTLE_ENDIAN__
+		bitmapInfo|=kO2BitmapByteOrder32Little;
+#else
+		bitmapInfo|=kO2BitmapByteOrder32Big;
+#endif
+	}
+	
    switch([colorSpace type]){
     case kO2ColorSpaceModelMonochrome:
      return initFunctionsForMonochrome(self,bitsPerComponent,bitsPerPixel,bitmapInfo);
@@ -282,7 +296,18 @@ ONYX2D_STATIC BOOL initFunctionsForParameters(O2Image *self,size_t bitsPerCompon
       
 }
 
--initWithWidth:(size_t)width height:(size_t)height bitsPerComponent:(size_t)bitsPerComponent bitsPerPixel:(size_t)bitsPerPixel bytesPerRow:(size_t)bytesPerRow colorSpace:(O2ColorSpaceRef)colorSpace bitmapInfo:(unsigned)bitmapInfo provider:(O2DataProvider *)provider decode:(const O2Float *)decode interpolate:(BOOL)interpolate renderingIntent:(O2ColorRenderingIntent)renderingIntent {
+-initWithWidth:(size_t)width
+        height:(size_t)height
+bitsPerComponent:(size_t)bitsPerComponent
+  bitsPerPixel:(size_t)bitsPerPixel
+   bytesPerRow:(size_t)bytesPerRow
+    colorSpace:(O2ColorSpaceRef)colorSpace
+    bitmapInfo:(O2BitmapInfo)bitmapInfo
+       decoder:(O2ImageDecoder *)decoder
+      provider:(O2DataProvider *)provider
+        decode:(const O2Float *)decode
+   interpolate:(BOOL)interpolate 
+renderingIntent:(O2ColorRenderingIntent)renderingIntent {
    _width=width;
    _height=height;
    _bitsPerComponent=bitsPerComponent;
@@ -290,6 +315,7 @@ ONYX2D_STATIC BOOL initFunctionsForParameters(O2Image *self,size_t bitsPerCompon
    _bytesPerRow=bytesPerRow;
    _colorSpace=[colorSpace retain];
    _bitmapInfo=bitmapInfo;
+    _decoder=[decoder retain];
    _provider=[provider retain];
   // _decode=NULL;
    _interpolate=interpolate;
@@ -302,7 +328,7 @@ ONYX2D_STATIC BOOL initFunctionsForParameters(O2Image *self,size_t bitsPerCompon
 
    _clampExternalPixels=NO; // only do this if premultiplied format
    if(!initFunctionsForParameters(self,bitsPerComponent,bitsPerPixel,colorSpace,bitmapInfo)){
-    NSLog(@"O2Image failed to init with bpc=%d, bpp=%d,colorSpace=%@,bitmapInfo=0x%0X",bitsPerComponent,bitsPerPixel,colorSpace,bitmapInfo);
+    NSLog(@"O2Image failed to init with bpc=%zu, bpp=%zu,colorSpace=%@,bitmapInfo=0x%0X",bitsPerComponent,bitsPerPixel,colorSpace,bitmapInfo);
     [self dealloc];
     return nil;
    }
@@ -323,7 +349,7 @@ ONYX2D_STATIC BOOL initFunctionsForParameters(O2Image *self,size_t bitsPerCompon
 -initMaskWithWidth:(size_t)width height:(size_t)height bitsPerComponent:(size_t)bitsPerComponent bitsPerPixel:(size_t)bitsPerPixel bytesPerRow:(size_t)bytesPerRow provider:(O2DataProvider *)provider decode:(const float *)decode interpolate:(BOOL)interpolate {
    O2ColorSpaceRef gray=O2ColorSpaceCreateDeviceGray();
    
-   if((self=[self initWithWidth:width height:height bitsPerComponent:bitsPerComponent bitsPerPixel:bitsPerPixel bytesPerRow:bytesPerRow colorSpace:gray bitmapInfo:kO2ImageAlphaNone provider:provider decode:decode interpolate:interpolate renderingIntent:kO2RenderingIntentDefault])==nil){
+    if((self=[self initWithWidth:width height:height bitsPerComponent:bitsPerComponent bitsPerPixel:bitsPerPixel bytesPerRow:bytesPerRow colorSpace:gray bitmapInfo:kO2ImageAlphaNone decoder:NULL provider:provider decode:decode interpolate:interpolate renderingIntent:kO2RenderingIntentDefault])==nil){
     O2ColorSpaceRelease(gray);
     return nil;
    }
@@ -335,6 +361,7 @@ ONYX2D_STATIC BOOL initFunctionsForParameters(O2Image *self,size_t bitsPerCompon
 
 -(void)dealloc {
    [_colorSpace release];
+    [_decoder release];
    [_provider release];
    if(_decode!=NULL)
     NSZoneFree(NULL,_decode);
@@ -414,7 +441,7 @@ ONYX2D_STATIC_INLINE const void *scanlineAtY(O2Image *self,int y){
 }
 
 O2ImageRef O2ImageCreate(size_t width,size_t height,size_t bitsPerComponent,size_t bitsPerPixel,size_t bytesPerRow,O2ColorSpaceRef colorSpace,O2BitmapInfo bitmapInfo,O2DataProviderRef dataProvider,const O2Float *decode,BOOL shouldInterpolate,O2ColorRenderingIntent renderingIntent) {
-   return [[O2Image alloc] initWithWidth:width height:height bitsPerComponent:bitsPerComponent bitsPerPixel:bitsPerPixel bytesPerRow:bytesPerRow colorSpace:colorSpace bitmapInfo:bitmapInfo provider:dataProvider decode:decode interpolate:shouldInterpolate renderingIntent:renderingIntent];
+    return [[O2Image alloc] initWithWidth:width height:height bitsPerComponent:bitsPerComponent bitsPerPixel:bitsPerPixel bytesPerRow:bytesPerRow colorSpace:colorSpace bitmapInfo:bitmapInfo decoder:NULL provider:dataProvider decode:decode interpolate:shouldInterpolate renderingIntent:renderingIntent];
 }
 
 O2ImageRef O2ImageMaskCreate(size_t width,size_t height,size_t bitsPerComponent,size_t bitsPerPixel,size_t bytesPerRow,O2DataProviderRef dataProvider,const O2Float *decode,BOOL shouldInterpolate) {
@@ -453,17 +480,16 @@ O2ImageRef O2ImageCreateWithImageInRect(O2ImageRef self,O2Rect rect) {
    for(row=0;row<height;row++){
     const uint8_t *rowBytes=pixelBytes+(x*self->_bitsPerPixel)/8;
     
-    for(col=0;col<width;col++){
+    for(col=0;col<childBytesPerRow;col++){
+		// Copy all of the needed bytes for the row
      childPixelBytes[childIndex++]=rowBytes[col];
-}
+	}
 
     pixelBytes+=self->_bytesPerRow;
    }
    
    NSData *data=[NSData dataWithBytesNoCopy:childPixelBytes length:childIndex];
-   O2DataProviderRef provider=O2DataProviderCreateWithCFData(data);
-   
-   [data release];
+   O2DataProviderRef provider=O2DataProviderCreateWithCFData((CFDataRef)data);
 
    O2ImageRef result=O2ImageCreate(width,height,self->_bitsPerComponent,self->_bitsPerPixel,childBytesPerRow,self->_colorSpace,self->_bitmapInfo,provider,self->_decode,self->_interpolate,self->_renderingIntent);
    
@@ -585,6 +611,13 @@ O2ImageRef O2ImageGetMask(O2ImageRef self) {
     return 0;
    
    return self->_mask;
+}
+
+O2ImageDecoderRef O2ImageGetImageDecoder(O2ImageRef self) {
+    if(self==NULL)
+        return NULL;
+    
+    return self->_decoder;
 }
 
 O2argb32f *O2ImageRead_ANY_to_argb8u_to_argb32f(O2Image *self,int x,int y,O2argb32f *span,int length){
@@ -1545,7 +1578,7 @@ void O2ImageReadPatternSpan_largb32f_PRE(O2Image *self,O2Float x, O2Float y, O2a
 }
 
 -(NSString *)description {
-   return [NSString stringWithFormat:@"<%@:%p> width=%d,height=%d,bpc=%d,bpp=%d,bpr=%d, data length=%d",isa,self,_width,_height,_bitsPerComponent,_bitsPerPixel,_bytesPerRow,[_provider length]];
+   return [NSString stringWithFormat:@"<%@:%p> width=%d,height=%d,bpc=%d,bpp=%d,bpr=%d,bminfo=%x data length=%d",isa,self,_width,_height,_bitsPerComponent,_bitsPerPixel,_bytesPerRow,_bitmapInfo,[_provider length]];
 }
 
 @end

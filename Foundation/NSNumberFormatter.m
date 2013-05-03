@@ -6,13 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #import <Foundation/NSString.h>
+#import <Foundation/NSBundle.h>
 #import <Foundation/NSCoder.h>
 #import <Foundation/NSNumber.h>
+#import <Foundation/NSScanner.h>
 #import <Foundation/NSArray.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSAttributedString.h>
 #import <Foundation/NSNumberFormatter.h>
 #import <Foundation/NSException.h>
+#import <Foundation/NSError.h>
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSCharacterSet.h>
 #import <Foundation/NSLocale.h>
@@ -44,9 +47,11 @@ static NSNumberFormatterBehavior _defaultFormatterBehavior=NSNumberFormatterBeha
    [super init];
    _behavior=_defaultFormatterBehavior;
    _numberStyle=NSNumberFormatterNoStyle;
-   
-   _thousandSeparator = @",";
-   _decimalSeparator = @".";
+
+    _locale= [[NSLocale currentLocale] retain];
+    
+    _thousandSeparator = [[_locale objectForKey:NSLocaleGroupingSeparator] retain];
+    _decimalSeparator = [[_locale objectForKey:NSLocaleDecimalSeparator] retain];
    _attributedStringForNil=[[NSAttributedString allocWithZone:NULL] initWithString:@"(null)"];
    _attributedStringForNotANumber=[[NSAttributedString allocWithZone:NULL] initWithString:@"NaN"];
    _attributedStringForZero=[[NSAttributedString allocWithZone:NULL] initWithString:@"0.0"];
@@ -57,122 +62,180 @@ static NSNumberFormatterBehavior _defaultFormatterBehavior=NSNumberFormatterBeha
 
 // FIXME: doesnt do everything
 
-static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,NSUInteger *numberOfFractionDigits,NSUInteger *groupingSizep,NSUInteger *secondaryGroupingSizep) {
-    NSInteger i,length=[format length],prefixLength=0,suffixLength=0,groupingSize=0,secondaryGroupingSize=0;
-    unichar   buffer[length];
-    unichar   prefixBuffer[length],suffixBuffer[length];
-    BOOL      addToGrouping=NO;
-    
+/*
+ * The format string (on 10.4 - which Cocotron currently supports) follows this standard: http://unicode.org/reports/tr35/tr35-4.html#Number_Format_Patterns
+ * The parser isn't handling every option in the string but at least the common things such as: [prefix] #,##0.### [suffix]
+ *
+ */
+
+
+static void extractFormat(NSString *format,
+                          NSString **prefix, NSString **suffix,
+                          NSUInteger *minimumIntegerDigitsp, NSUInteger *maximumIntegerDigitsp,
+                          NSUInteger *minimumFractionDigitsp, NSUInteger *maximumFractionDigitsp,
+                          NSUInteger *groupingSizep, NSUInteger *secondaryGroupingSizep)
+{
+    NSUInteger length = [format length];
+    NSUInteger prefixLength = 0;
+    NSUInteger suffixLength = 0;
+
+    NSUInteger groupingSize = 0;
+    NSUInteger secondaryGroupingSize = 0;
+
+    unichar buffer[length];
+    unichar prefixBuffer[length], suffixBuffer[length];
+
     enum {
-     STATE_PREFIX,
-     STATE_FIRST_HASH,
-     STATE_FIRST_PERIOD,
-     STATE_FIRST_ZERO,
-     STATE_FIRST_COMMA,
-     STATE_SUFFIX,
-    } state=STATE_PREFIX;
-    
-    if(numberOfFractionDigits!=NULL)
-     *numberOfFractionDigits=0;
-    
+        STATE_PREFIX,
+        STATE_INTEGER,
+        STATE_FRACTION,
+        STATE_SUFFIX,
+    } state = STATE_PREFIX;
+
+    NSUInteger minimumIntegerDigits, maximumIntegerDigits, minimumFractionDigits, maximumFractionDigits;
+    minimumIntegerDigits = 0;
+    maximumIntegerDigits = 0;
+    minimumFractionDigits = 0;
+    maximumFractionDigits = 0;
+
+    BOOL foundPrimaryGrouping = NO;
+
     [format getCharacters:buffer];
-    
-    for(i=0;i<length;i++){
-     unichar code=buffer[i];
-     
-     switch(state){
-     
-      case STATE_PREFIX:
-       if(code=='#')
-        state=STATE_FIRST_HASH;
-       else if(code=='.')
-        state=STATE_FIRST_PERIOD;
-       else if(code=='0')
-        state=STATE_FIRST_ZERO;
-       else if(code==','){
-        state=STATE_FIRST_COMMA;
-        addToGrouping=YES;
-	}
-       else {
-        prefixBuffer[prefixLength++]=code;
-       }
-       break;
-       
-      case STATE_FIRST_PERIOD:
-       if(numberOfFractionDigits!=NULL)
-        *numberOfFractionDigits++;
-      case STATE_FIRST_HASH:
-      case STATE_FIRST_ZERO:
-      case STATE_FIRST_COMMA:
-       if(code=='#'){
-        if(addToGrouping)
-         groupingSize++;
-       }
-       else if(code=='.'){
-        addToGrouping=NO;
-       }
-       else if(code=='0'){
-        if(addToGrouping)
-         groupingSize++;
-       }
-       else if(code==','){
-        if(addToGrouping){
-         secondaryGroupingSize=groupingSize;
-         groupingSize=0;
+
+    NSInteger i = 0;
+    for (i = 0; i < length; i++) {
+        unichar code = buffer[i];
+
+        switch (state) {
+
+            case STATE_PREFIX:
+                // Looking for non-numeric chars leading off the format - stop when we find a 0 or a # or a '.'
+                if (code == '.') {
+                    state = STATE_FRACTION;
+                } else if (code == '#' || code == '0') {// starting off with a hash or a 0
+                    state = STATE_INTEGER;
+                    i--; // step back so we can process these chars in the right state
+                } else {
+                    // Suck up chars into the prefix
+                    prefixBuffer[prefixLength++] = code;
+                }
+                break;
+            case STATE_INTEGER:
+                if (code == '.') {
+                    state = STATE_FRACTION;
+                    // No need to step back - the '.' just marks the separation
+                } else if (code == '#') {
+                    if (foundPrimaryGrouping) {
+                        groupingSize++;
+                    }
+                    maximumIntegerDigits++;
+                } else if (code == '0') {
+                    if (foundPrimaryGrouping) {
+                        groupingSize++;
+                    }
+                    minimumIntegerDigits++;
+                    maximumIntegerDigits++;
+                } else if (code == ',') {
+                    if (foundPrimaryGrouping == NO) {
+                        foundPrimaryGrouping = YES;
+                    } else {
+                        secondaryGroupingSize = groupingSize;
+                        groupingSize = 0;
+                    }
+                } else {
+                    // Anything we don't recognize means we're into the suffix part
+                    state = STATE_SUFFIX;
+                    i--;
+                }
+                break;
+            case STATE_FRACTION:
+                if (code == '#') {
+                   maximumFractionDigits++;
+                } else if (code == '0') {
+                    minimumFractionDigits++;
+                    maximumFractionDigits++;
+                } else {
+                    state = STATE_SUFFIX;
+                    i--; // and step back one to catch the contents
+                }
+                break;
+            case STATE_SUFFIX:
+                suffixBuffer[suffixLength++] = code;
+                break;
         }
-        addToGrouping=YES;
-       }
-       else {
-        suffixBuffer[suffixLength++]=code;
-        state=STATE_SUFFIX;
-       }
-       break;
-      
-      case STATE_SUFFIX:
-       suffixBuffer[suffixLength++]=code;
-       break;
-     }
-     
     }
-   
-   if(groupingSizep!=NULL)
-    *groupingSizep=groupingSize;
-   if(secondaryGroupingSizep!=NULL)
-    *secondaryGroupingSizep=secondaryGroupingSize;
-    
-    if(prefixLength>0)
-     *prefix=[[NSString allocWithZone:NULL] initWithCharacters:prefixBuffer length:prefixLength];
-     
-    if(suffixLength>0)
-     *suffix=[[NSString allocWithZone:NULL] initWithCharacters:suffixBuffer length:suffixLength];    
+
+    // Update all valud the parameters
+    if (minimumIntegerDigitsp != NULL) {
+        *minimumIntegerDigitsp = minimumIntegerDigits;
+    }
+
+    if (maximumIntegerDigitsp != NULL) {
+        *maximumIntegerDigitsp = maximumIntegerDigits;
+    }
+
+    if (minimumFractionDigitsp != NULL) {
+        *minimumFractionDigitsp = minimumFractionDigits;
+    }
+
+    if (maximumFractionDigitsp != NULL) {
+        *maximumFractionDigitsp = maximumFractionDigits;
+    }
+
+    if (groupingSizep != NULL) {
+        *groupingSizep = groupingSize;
+    }
+
+    if (secondaryGroupingSizep != NULL) {
+        *secondaryGroupingSizep = secondaryGroupingSize;
+    }
+
+    if (prefixLength > 0) {
+     *prefix = [[NSString allocWithZone: NULL] initWithCharacters: prefixBuffer length: prefixLength];
+    }
+
+    if (suffixLength > 0) {
+        *suffix = [[NSString allocWithZone: NULL] initWithCharacters: suffixBuffer length: suffixLength];
+    }
 }
+
 
 -(void)extractFromPositiveFormat {
    if([_positiveFormat length]){
-   
+
     [_positivePrefix release];
     _positivePrefix=nil;
     [_positiveSuffix release];
     _positiveSuffix=nil;
-    
-    extractFormat(_positiveFormat,&_positivePrefix,&_positiveSuffix,&_maximumFractionDigits,&_groupingSize,&_secondaryGroupingSize);
+
+    extractFormat(_positiveFormat, &_positivePrefix, &_positiveSuffix,
+				  &_minimumIntegerDigits, &_maximumIntegerDigits,
+				  &_minimumFractionDigits, &_maximumFractionDigits,
+				  &_groupingSize,&_secondaryGroupingSize);
+	_customMaximumFractionDigits = YES;
    }
 }
+
 -(void)extractFromNegativeFormat {
    if([_negativeFormat length]){
-   
+
     [_negativePrefix release];
     _negativePrefix=nil;
     [_negativeSuffix release];
     _negativeSuffix=nil;
-    
-    extractFormat(_negativeFormat,&_negativePrefix,&_negativeSuffix,NULL,NULL,NULL);
+
+    extractFormat(_negativeFormat, &_negativePrefix, &_negativeSuffix, NULL, NULL, NULL, NULL, NULL, NULL);
+	   if ([_negativePrefix isEqualToString: @"-"]) {
+		   // That's not a very interesting prefix...
+		   [_negativePrefix release];
+		   _negativePrefix = nil;
+	   }
    }
 }
 
 -initWithCoder:(NSCoder*)coder {
    [super initWithCoder:coder];
-   
+
    if([coder allowsKeyedCoding]){
     NSDictionary *attributes=[coder decodeObjectForKey:@"NS.attributes"];
     id check;
@@ -245,13 +308,13 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
     _perMillSymbol=[[attributes objectForKey:@"perMillSymbol"] copy];
     _roundingIncrement=[[attributes objectForKey:@"roundingIncrement"] copy];
     _roundingMode=[[attributes objectForKey:@"roundingMode"] integerValue];
-    
+
     _positiveFormat=[[attributes objectForKey:@"positiveFormat"] copy];
     _negativeFormat=[[attributes objectForKey:@"negativeFormat"] copy];
 
     [self extractFromPositiveFormat];
     [self extractFromNegativeFormat];
-    
+
     _textAttributesForPositiveValues=nil;
     _textAttributesForNegativeValues=nil;
     _textAttributesForNegativeInfinity=nil;
@@ -264,7 +327,7 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 #if 0
     _nilSymbol=[[coder decodeObjectForKey:@"NS.nil"] copy];
     _zeroSymbol=[[coder decodeObjectForKey:@"NS.zero"] copy];
-    
+
     _positiveFormat=[[coder decodeObjectForKey:@"NS.positiveformat"] copy];
     _negativeFormat=[[coder decodeObjectForKey:@"NS.negativeformat"] copy];
     _textAttributesForPositiveValues=[[coder decodeObjectForKey:@"NS.positiveattrs"] copy]
@@ -277,13 +340,58 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
     _localizesFormat=[coder decodeBoolForKey:@"NS.localized"];
 #endif
    }
-   
+
 	return self;
 }
 
 -(void)dealloc {
-   [_negativeFormat release];
-   [_positiveFormat release];
+    
+    [_locale release];
+    [_multiplier release];
+    
+    [_minimum release];
+    [_maximum release];
+    
+    [_nilSymbol release];
+    [_notANumberSymbol release];
+    [_zeroSymbol release];
+    [_plusSign release];
+    [_minusSign release];
+    [_negativePrefix release];
+    [_negativeSuffix release];
+    [_positivePrefix release];
+    [_positiveSuffix release];
+    [_negativeInfinitySymbol release];
+    [_positiveInfinitySymbol release];
+    
+    [_decimalSeparator release];
+    [_exponentSymbol release];
+    [_currencyCode release];
+    [_currencySymbol release];
+    [_internationalCurrencySymbol release];
+    [_currencyDecimalSeparator release];
+    [_currencyGroupingSeparator release];
+    [_groupingSeparator release];
+    [_paddingCharacter release];
+    [_percentSymbol release];
+    [_perMillSymbol release];
+    [_roundingIncrement release];
+    [_positiveFormat release];
+    [_negativeFormat release];
+    [_textAttributesForPositiveValues release];
+    [_textAttributesForNegativeValues release];
+    [_textAttributesForNegativeInfinity release];
+    [_textAttributesForNil release];
+    [_textAttributesForNotANumber release];
+    [_textAttributesForPositiveInfinity release];
+    [_textAttributesForZero release];
+    
+    [_attributedStringForNil release];
+    [_attributedStringForNotANumber release];
+    [_attributedStringForZero release];
+    [_roundingBehavior release];
+    [_thousandSeparator release];
+    
    [super dealloc];
 }
 
@@ -309,7 +417,7 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 
 -(NSNumber *)multiplier {
    if(_multiplier==nil){
-   
+
     if(_numberStyle==NSNumberFormatterPercentStyle)
      return [NSNumber numberWithInt:100];
 }
@@ -372,10 +480,10 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 -(NSUInteger)maximumFractionDigits {
    if(_customMaximumFractionDigits)
     return _maximumFractionDigits;
-   
+
    if(_numberStyle==NSNumberFormatterDecimalStyle)
     return 3;
-   
+
    return 0;
 }
 
@@ -398,7 +506,7 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 -(NSString *)notANumberSymbol {
    if(_notANumberSymbol==nil)
     return @"NaN";
-    
+
    return _notANumberSymbol;
 }
 
@@ -417,7 +525,7 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 -(NSString *)negativePrefix {
    if(_negativePrefix==nil)
     return @"";
-    
+
    return _negativePrefix;
 }
 
@@ -425,20 +533,20 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 // Suffixes return the percent symbol if specified
 
    if(_negativeSuffix==nil){
-   
+
     if(_numberStyle==NSNumberFormatterPercentStyle)
      return [self percentSymbol];
-     
+
     return @"";
 }
-   
+
    return _negativeSuffix;
 }
 
 -(NSString *)positivePrefix {
    if(_positivePrefix==nil)
     return @"";
-    
+
    return _positivePrefix;
 }
 
@@ -446,13 +554,13 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 // Suffixes return the percent symbol if specified
 
    if(_positiveSuffix==nil){
-   
+
     if(_numberStyle==NSNumberFormatterPercentStyle)
      return [self percentSymbol];
-     
+
     return @"";
 }
-    
+
    return _positiveSuffix;
 }
 
@@ -499,13 +607,13 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 -(NSString *)groupingSeparator {
    if(_groupingSeparator==nil){
     NSString *check=[_locale objectForKey:NSLocaleGroupingSeparator];
-    
+
     if(check!=nil)
      return check;
-     
+
     return @",";
 }
-   
+
    return _groupingSeparator;
 }
 
@@ -528,7 +636,7 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
 -(NSString *)percentSymbol {
    if(_percentSymbol==nil)
     return @"%";
-    
+
    return _percentSymbol;
 }
 
@@ -612,7 +720,7 @@ static void extractFormat(NSString *format,NSString **prefix,NSString **suffix,N
    else
       _negativeFormat = [NSString stringWithFormat:@"-%@", _positiveFormat];
 
-   if ([format rangeOfString:@","].location != NSNotFound || 
+   if ([format rangeOfString:@","].location != NSNotFound ||
       [format rangeOfString:_thousandSeparator].location != NSNotFound)
       [self setHasThousandSeparators:YES];
 }
@@ -973,20 +1081,20 @@ static NSString *stringWithFormatGrouping(NSString *format,id locale,NSString *g
 
 -(NSString *)_stringFromNumber:(NSNumber *)number  {
    NSString *string=nil;
-   
+
    if(number==nil)
     string=[self nilSymbol];
    else if(number==(NSNumber *)kCFNumberNaN)
     string=[self notANumberSymbol];
    else if(number==(NSNumber *)kCFNumberPositiveInfinity){
     NSString *check=[self positiveInfinitySymbol];
-    
+
     if(check==nil){
      unichar code=0x221E; // unicode infinity
-     
+
      check=[NSString stringWithCharacters:&code length:1];
     }
-    
+
     string=check;
    }
    else if(number==(NSNumber *)kCFNumberNegativeInfinity){
@@ -994,23 +1102,23 @@ static NSString *stringWithFormatGrouping(NSString *format,id locale,NSString *g
 
     if(check==nil){
      unichar codes[2]={ '-', 0x221E }; // unicode infinity
-     
+
      check=[NSString stringWithCharacters:codes length:2];
     }
-    
+
     string=check;
    }
 
    const char *objcType=[number objCType];
-   
+
    if(objcType==NULL || strlen(objcType)!=1)
     objcType="?";
-  
+
    switch(*objcType){
     case _C_CHR:
     case _C_SHT:
     case _C_INT:
-#ifndef __LP64__    
+#ifndef __LP64__
     case _C_LNG:
 #endif
      string=stringWithFormatGrouping(@"%i",_locale,[self groupingSeparator],[self groupingSize],[number intValue]);
@@ -1020,36 +1128,36 @@ static NSString *stringWithFormatGrouping(NSString *format,id locale,NSString *g
     case _C_UCHR:
     case _C_USHT:
     case _C_UINT:
-#ifndef __LP64__    
+#ifndef __LP64__
     case _C_ULNG:
 #endif
      string=stringWithFormatGrouping(@"%u",_locale,[self groupingSeparator],[self groupingSize],[number unsignedIntValue]);
      break;
-     
-#ifdef __LP64__    
+
+#ifdef __LP64__
     case _C_LNG:
 #endif
-    case _C_LNGLNG:
+    case _C_LNG_LNG:
      string=stringWithFormatGrouping(@"%qd",_locale,[self groupingSeparator],[self groupingSize],[number longLongValue]);
      break;
      break;
 
-#ifdef __LP64__    
+#ifdef __LP64__
     case _C_ULNG:
 #endif
-    case _C_ULNGLNG:
+    case _C_ULNG_LNG:
      string=stringWithFormatGrouping(@"%qu",_locale,[self groupingSeparator],[self groupingSize],[number unsignedLongLongValue]);
      break;
 
     case _C_FLT:
     case _C_DBL:;
      NSString *format;
-     
-     format=[NSString stringWithFormat:@"%%.%df",[self maximumFractionDigits]];
-      
+
+     format=[NSString stringWithFormat:@"%%.%df",[self minimumFractionDigits]];
+
      string=stringWithFormatGrouping(format,_locale,[self groupingSeparator],[self groupingSize],[number doubleValue]);
      break;
-    
+
     default:
      string=[number description];
      break;
@@ -1061,48 +1169,49 @@ static NSString *stringWithFormatGrouping(NSString *format,id locale,NSString *g
 static NSNumber *multipliedNumber(NSNumber *number,NSNumber *multiplier){
    if(multiplier==nil)
     return number;
-   
+
    return [NSNumber numberWithDouble:[number doubleValue]*[multiplier doubleValue]];
 }
 
 static BOOL numberIsNegative(NSNumber *number){
    if(number==nil)
     return NO;
-    
+
    return (copysign(1.0,[number doubleValue])<0)?YES:NO;
 }
 
 static BOOL numberIsPositive(NSNumber *number){
    if(number==nil)
     return YES; // ?
-    
+
    return (copysign(1.0,[number doubleValue])>0)?YES:NO;
 }
 
 -(NSString *)stringFromNumberNoStyle:(NSNumber *)number {
    number=multipliedNumber(number,[self multiplier]);
-   
+
    NSString *prefix;
    NSString *suffix;
-   NSString *format;
+   //unused
+   //NSString *format;
 
    if(numberIsNegative(number)){
     prefix=[self negativePrefix];
     suffix=[self negativeSuffix];
-    format=[self negativeFormat];
+    //format=[self negativeFormat];
    }
    else {
     prefix=[self positivePrefix];
     suffix=[self positiveSuffix];
-    format=[self positiveFormat];
+    //format=[self positiveFormat];
    }
-   
+
    NSString *result;
-   
+
    result=prefix;
    result=[result stringByAppendingString:[self _stringFromNumber:number]];
    result=[result stringByAppendingString:suffix];
-   
+
    return result;
 }
 
@@ -1140,23 +1249,67 @@ static BOOL numberIsPositive(NSNumber *number){
 
 -(NSString *)stringFromNumber:(NSNumber *)number {
    NSNumberFormatterBehavior check=_behavior;
-   
+
    if(check==NSNumberFormatterBehaviorDefault)
     check=NSNumberFormatterBehavior10_4;
-   
+
    if(check==NSNumberFormatterBehavior10_0)
     return [self stringFromNumber10_0:number];
    else
     return [self stringFromNumber10_4:number];
 }
 
+-(NSNumber *)_numberFromString:(NSString *)string error:(NSString **)error
+{
+    // simple test of characters...
+    NSMutableCharacterSet *digitsAndSeparators = [[[NSCharacterSet decimalDigitCharacterSet] mutableCopy] autorelease];
+    NSMutableString *mutableString = [[string mutableCopy] autorelease];
+    unichar thousandSeparator = [_thousandSeparator characterAtIndex:0];
+    
+    [digitsAndSeparators addCharactersInString:_decimalSeparator];
+    if (_hasThousandSeparators) {
+        [digitsAndSeparators addCharactersInString:_thousandSeparator];
+    }
+    for (NSUInteger i = 0; i < [mutableString length]; ++i) {
+        if (![digitsAndSeparators characterIsMember:[mutableString characterAtIndex:i]]) {
+            if (error != NULL) {
+                *error = NSLocalizedStringFromTableInBundle(@"Invalid number", nil, [NSBundle bundleForClass: [NSNumberFormatter class]], @"");
+            }
+            return nil;
+        }
+        
+        // take out the thousand separator
+        if (_hasThousandSeparators && [mutableString characterAtIndex:i] == thousandSeparator) {
+            [mutableString deleteCharactersInRange:NSMakeRange(i, 1)];
+        }
+    }
+    NSScanner *scanner = [NSScanner scannerWithString: mutableString];
+    if (_locale) {
+        [scanner setLocale: (id)_locale];
+    } else {
+        [scanner setLocale:[NSLocale currentLocale]];
+    }
+    float value;
+    NSNumber *number = nil;
+    if ([scanner scanFloat:&value] == NO) {
+        if (error != NULL) {
+            *error = NSLocalizedStringFromTableInBundle(@"Invalid number", nil, [NSBundle bundleForClass: [NSNumberFormatter class]], @"");
+        }
+    } else {
+        if ([self multiplier]) {
+            value /= [[self multiplier] floatValue];
+        }
+        number = [NSNumber numberWithFloat:value];
+    }
+    return number;
+}
+
 -(NSNumber *)numberFromString:(NSString *)string {
-   NSUnimplementedMethod();
-   return 0;
+    return [self _numberFromString:string error:NULL];
 }
 
 // BROKEN
-#if 0  
+#if 0
 -(NSString *)_objectValue:(id)object withNumberFormat:(NSString *)format {
    NSString *stringValue = [[NSNumber numberWithDouble:[object doubleValue]] stringValue];
    //NSAllocateMemoryPages wtf??
@@ -1178,7 +1331,7 @@ static BOOL numberIsPositive(NSNumber *number){
 
    // decremented in main loop, when zero, time for a separator
    if (_hasThousandSeparators)
-      thousandSepCounter = (prePoint % 3) ? (prePoint % 3) : 3;  
+      thousandSepCounter = (prePoint % 3) ? (prePoint % 3) : 3;
    else
       thousandSepCounter = -1;		   // never
 
@@ -1236,7 +1389,7 @@ static BOOL numberIsPositive(NSNumber *number){
 #endif
 
 // this section works, but it's pretty lame...
-// it doesn't round, it truncates; integers in the format specifier are ignored... 
+// it doesn't round, it truncates; integers in the format specifier are ignored...
 -(NSString *)_separatedStringIfNeededWithString:(NSString *)string {
    NSUInteger thousandSepCounter, i, j = 0;
    unichar buffer[256];
@@ -1247,7 +1400,7 @@ static BOOL numberIsPositive(NSNumber *number){
    if ([string length] < 4)
       return string;
 
-   thousandSepCounter = ([string length] % 3) ? ([string length] % 3) : 3;  
+   thousandSepCounter = ([string length] % 3) ? ([string length] % 3) : 3;
    for (i = 0; i < [string length]; ++i) {
       buffer[j++] = [string characterAtIndex:i];
       thousandSepCounter--;
@@ -1309,7 +1462,7 @@ static BOOL numberIsPositive(NSNumber *number){
          // ignore?
          case NSNumberFormatterSpace:
          // ignore; already handled
-         case NSNumberFormatterThousandSeparator:   
+         case NSNumberFormatterThousandSeparator:
             break;
 
          case NSNumberFormatterDecimalSeparator:
@@ -1350,7 +1503,7 @@ static BOOL numberIsPositive(NSNumber *number){
 -(NSAttributedString *)attributedStringForObjectValue10_0:object withDefaultAttributes:(NSDictionary *)defaultAttributes {
    if(object==nil){
     NSAttributedString *check=[self attributedStringForNil];
-    
+
     if(check!=nil)
      return check;
 }
@@ -1360,27 +1513,27 @@ static BOOL numberIsPositive(NSNumber *number){
     if(check!=nil)
      return check;
    }
-   
+
    NSString     *string=[self stringForObjectValue:object];
    NSDictionary *attributes=nil;
-    
+
    if(numberIsPositive(object))
     attributes=[self textAttributesForPositiveValues];
    else if(numberIsNegative(object))
     attributes=[self textAttributesForNegativeValues];
    else
     attributes=[self textAttributesForZero];
-    
+
    if(attributes==nil)
     attributes=defaultAttributes;
-     
+
    return [[[NSAttributedString allocWithZone:NULL] initWithString:string attributes:attributes] autorelease];
 }
 
 -(NSAttributedString *)attributedStringForObjectValue10_4:object withDefaultAttributes:(NSDictionary *)defaultAttributes {
    NSString     *string=[self stringForObjectValue:object];
    NSDictionary *attributes=nil;
-   
+
    if (object == nil)
     attributes=[self textAttributesForNil];
    else if(object==(NSNumber *)kCFNumberNaN)
@@ -1404,10 +1557,10 @@ static BOOL numberIsPositive(NSNumber *number){
 
 -(NSAttributedString *)attributedStringForObjectValue:object withDefaultAttributes:(NSDictionary *)attributes {
    NSNumberFormatterBehavior check=_behavior;
-   
+
    if(check==NSNumberFormatterBehaviorDefault)
     check=NSNumberFormatterBehavior10_4;
-   
+
    if(check==NSNumberFormatterBehavior10_0)
     return [self attributedStringForObjectValue10_0:object withDefaultAttributes:(NSDictionary *)attributes];
    else
@@ -1419,40 +1572,50 @@ static BOOL numberIsPositive(NSNumber *number){
 }
 
 -(BOOL)getObjectValue:(id *)valuep forString:(NSString *)string range:(NSRange *)rangep error:(NSError **)errorp {
-   NSUnimplementedMethod();
-   return 0;
+    NSString *errorDescription = nil;
+    BOOL result = [self getObjectValue:valuep forString:string errorDescription:&errorDescription];
+    if (errorp) {
+        if (result) {
+            *errorp = nil;
+        } else {
+            NSDictionary *userInfo = [NSDictionary dictionaryWithObject:errorDescription forKey:NSUnderlyingErrorKey];
+            *errorp = [NSError errorWithDomain:NSCocoaErrorDomain code:2048 userInfo:userInfo];
+        }
+    }
+   return result;
 }
 
 -(BOOL)getObjectValue:(id *)object forString:(NSString *)string errorDescription:(NSString **)error {
-   // simple test of characters...
-   NSMutableCharacterSet *digitsAndSeparators = [[[NSCharacterSet decimalDigitCharacterSet] mutableCopy] autorelease];
-   NSMutableString *mutableString = [[string mutableCopy] autorelease];
-   unichar thousandSeparator = [_thousandSeparator characterAtIndex:0];
-   NSUInteger i;
-
-   [digitsAndSeparators addCharactersInString:_decimalSeparator];
-   [digitsAndSeparators addCharactersInString:_thousandSeparator];
-
-   for (i = 0; i < [mutableString length]; ++i) {
-      if (![digitsAndSeparators characterIsMember:[mutableString characterAtIndex:i]]) {
-         if (error != NULL)
-            *error = @"Invalid number";
-         return NO;
-      }
-
-      // take out commas
-      if ([mutableString characterAtIndex:i] == thousandSeparator)
-         [mutableString deleteCharactersInRange:NSMakeRange(i, 1)];
-   }
-
-   *object = [NSNumber numberWithFloat:[mutableString floatValue]];
-   return YES;
+    if (object) {
+        *object = nil;
+    }
+    NSNumber *number = [self _numberFromString:string error:error];
+    if (number) {
+        float value = [number floatValue];
+        if ([self maximum] && value > [[self maximum] floatValue]) {
+            if (error != NULL) {
+                *error = NSLocalizedStringFromTableInBundle(@"Number too big", nil, [NSBundle bundleForClass: [NSNumberFormatter class]], @"");
+            }
+            number = nil;
+        } else if ([self minimum] && value < [[self minimum] floatValue]) {
+            if (error != NULL) {
+                *error = NSLocalizedStringFromTableInBundle(@"Number too smaller", nil, [NSBundle bundleForClass: [NSNumberFormatter class]], @"");
+            }
+            number = nil;
+        } else {
+            if (object) {
+                *object = number;
+            }
+        }
+    }
+    
+   return number != nil;
 }
 
--(BOOL)isPartialStringValid:(NSString *)partialString 
-   newEditingString:(NSString **)newString 
+-(BOOL)isPartialStringValid:(NSString *)partialString
+   newEditingString:(NSString **)newString
    errorDescription:(NSString **)error {
-   // 
+   //
    return YES;
 }
 

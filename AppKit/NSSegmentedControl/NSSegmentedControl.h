@@ -20,7 +20,7 @@ enum {
 };
 typedef NSInteger NSSegmentStyle;
 
-@interface NSSegmentedControl : NSControl;
+@interface NSSegmentedControl : NSControl
 
 -(NSInteger)segmentCount;
 -(NSSegmentStyle)segmentStyle;

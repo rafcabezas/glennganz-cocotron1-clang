@@ -3,6 +3,11 @@
 #import <Onyx2D/O2Exceptions.h>
 #import <Onyx2D/O2Encoder_TIFF.h>
 #import <Onyx2D/O2Encoder_PNG.h>
+#import <Onyx2D/O2Encoder_JPG.h>
+
+// Using the same value as CoreGraphics - that's removing the needs for conversion
+const CFStringRef kO2ImageDestinationLossyCompressionQuality = (const CFStringRef)@"kCGImageDestinationLossyCompressionQuality";
+const CFStringRef kO2ImageDestinationBackgroundColor = (const CFStringRef)@"kO2ImageDestinationBackgroundColor";
 
 @interface _O2ImageDestination : O2ImageDestination
 @end
@@ -83,6 +88,9 @@ O2ImageDestinationRef O2ImageDestinationCreateWithDataConsumer(O2DataConsumerRef
      break;
 
     case O2ImageFileJPEG:
+#ifdef LIBJPEG_PRESENT
+	 self->_encoder=O2JPGEncoderCreate(self->_consumer);
+#endif
      break;
 
     case O2ImageFilePNG:
@@ -126,6 +134,9 @@ void O2ImageDestinationAddImage(O2ImageDestinationRef self,O2ImageRef image,CFDi
      break;
 
     case O2ImageFileJPEG:
+#ifdef LIBJPEG_PRESENT
+	 O2JPGEncoderWriteImage(self->_encoder,image,properties);
+#endif
      break;
 
     case O2ImageFilePNG:
@@ -163,6 +174,10 @@ bool O2ImageDestinationFinalize(O2ImageDestinationRef self) {
      break;
 
     case O2ImageFileJPEG:
+#ifdef LIBJPEG_PRESENT
+	 O2JPGEncoderDealloc(self->_encoder);
+	 self->_encoder=NULL;
+#endif
      break;
 
     case O2ImageFilePNG:
@@ -173,7 +188,12 @@ bool O2ImageDestinationFinalize(O2ImageDestinationRef self) {
     case O2ImageFileJPEG2000:
      break;
    }
-
+	[self->_consumer release]; // This is needed so the consumer can finalize its work before we exit this function
+	self->_consumer = nil;
+   if (self->_options)
+	   CFRelease(self->_options);
+	self->_options = NULL;
+	
    return TRUE;
 }
 

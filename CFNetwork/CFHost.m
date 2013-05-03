@@ -47,6 +47,21 @@ typedef struct {
 }
 
 @end
+#ifdef __clang__
+// has to be in sync with the __CFHost interface
+struct __CFHost {
+   CFStringRef          _name;
+   CFHostClientCallBack _callback;
+   CFHostClientContext  _context;
+   Boolean              _hasResolvedAddressing;
+   CFArrayRef           _addressing;
+   CFHostRequest       *_request;
+#ifdef WINDOWS
+   HANDLE                 _event;
+   NSHandleMonitor_win32 *_monitor;
+#endif
+};
+#endif
 
 @implementation __CFHost
 
@@ -328,10 +343,10 @@ static void cancelHostInAddressResolverIfNeeded(CFHostRef self){
     return;
     
    EnterCriticalSection(&(info->queueLock));
-      
-    if(s->_request->_state==CFHostRequestInProgress){
-     s->_request->_state=CFHostRequestDeallocate;
-     s->_request=NULL;
+
+    if(self->_request->_state==CFHostRequestInProgress){
+     self->_request->_state=CFHostRequestDeallocate;
+     self->_request=NULL;
     }
     else {
      int i;
@@ -346,11 +361,11 @@ static void cancelHostInAddressResolverIfNeeded(CFHostRef self){
      }
       
    LeaveCriticalSection(&(info->queueLock));
-   
-   if(s->_request!=NULL){
-    NSZoneFree(NULL,s->_request->_name);
-    NSZoneFree(NULL,s->_request);
-    s->_request=NULL;
+
+   if(self->_request!=NULL){
+    NSZoneFree(NULL,self->_request->_name);
+    NSZoneFree(NULL,self->_request);
+    self->_request=NULL;
    }
    }
 }
@@ -377,12 +392,12 @@ CFHostRef  CFHostCreateWithAddress(CFAllocatorRef allocator,CFDataRef address) {
    return 0;
 }
 
-CFHostRef  CFHostCreateWithName(CFAllocatorRef allocator,CFStringRef name) {
-    CFHostRef result=[__CFHost allocWithZone:NULL];
+CFHostRef CFHostCreateWithName(CFAllocatorRef allocator, CFStringRef name) {
+    CFHostRef result = (CFHostRef)[__CFHost allocWithZone:NULL];
 
-   ((__CFHost*)result)->_name=CFStringCreateCopy(allocator,name);
-   
-   return result;
+    result->_name = CFStringCreateCopy(allocator, name);
+
+    return result;
 }
 
 -(void)dealloc {
@@ -443,13 +458,14 @@ Boolean    CFHostSetClient(CFHostRef self,CFHostClientCallBack callback,CFHostCl
 }
 
 static void CFHostCreateEventIfNeeded(CFHostRef self){
-    __CFHost *s = (__CFHost*)self;
-   if(s->_event==NULL){
-    s->_event=CreateEvent(NULL,FALSE,FALSE,NULL);
-    s->_monitor=[[NSHandleMonitor_win32 handleMonitorWithHandle:s->_event] retain];
-    [s->_monitor setDelegate:s];
-    [s->_monitor setCurrentActivity:Win32HandleSignaled];
+#ifdef WINDOWS
+   if(self->_event==NULL){
+    self->_event=CreateEvent(NULL,FALSE,FALSE,NULL);
+    self->_monitor=[[NSHandleMonitor_win32 handleMonitorWithHandle:self->_event] retain];
+    [self->_monitor setDelegate:self];
+    [self->_monitor setCurrentActivity:Win32HandleSignaled];
    }
+#endif
 }
 
 Boolean CFHostStartInfoResolution(CFHostRef self,CFHostInfoType infoType,CFStreamError *streamError) {
@@ -475,13 +491,15 @@ Boolean CFHostStartInfoResolution(CFHostRef self,CFHostInfoType infoType,CFStrea
         NSZoneFree(NULL,cStringName);
         return FALSE;
       }
-      
-      s->_request=NSZoneMalloc(NULL,sizeof(CFHostRequest));
-      s->_request->_state=CFHostRequestInQueue;
-      s->_request->_name=cStringName;
-      s->_request->_addressList=NULL;
-      CFHostCreateEventIfNeeded(s);
-      s->_request->_event=s->_event;
+
+      self->_request=NSZoneMalloc(NULL,sizeof(CFHostRequest));
+      self->_request->_state=CFHostRequestInQueue;
+      self->_request->_name=cStringName;
+      self->_request->_addressList=NULL;
+      CFHostCreateEventIfNeeded(self);
+#ifdef WINDOWS
+      self->_request->_event=self->_event;
+#endif
 
       queueHostToAddressResolver(s);
       return TRUE;
@@ -531,14 +549,18 @@ void CFHostScheduleWithRunLoop(CFHostRef self,CFRunLoopRef runLoop,CFStringRef m
     NSUnimplementedFunction();
 
    CFHostCreateEventIfNeeded(self);
-   [(NSRunLoop *)runLoop addInputSource:((__CFHost *)self)->_monitor forMode:(NSString *)mode];
+#ifdef WINDOWS
+   [(NSRunLoop *)runLoop addInputSource:self->_monitor forMode:(NSString *)mode];
+#endif
 }
 
 void CFHostUnscheduleFromRunLoop(CFHostRef self,CFRunLoopRef runLoop,CFStringRef mode) {
    if(runLoop!=CFRunLoopGetCurrent())
      NSUnimplementedFunction();
 
-   [(NSRunLoop *)runLoop removeInputSource:((__CFHost *)self)->_monitor forMode:(NSString *)mode];
+#ifdef WINDOWS
+   [(NSRunLoop *)runLoop removeInputSource:self->_monitor forMode:(NSString *)mode];
+#endif
 }
 
 @end

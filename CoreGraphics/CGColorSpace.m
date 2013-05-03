@@ -40,9 +40,3 @@ CGColorSpaceModel CGColorSpaceGetModel(CGColorSpaceRef self) {
 size_t CGColorSpaceGetNumberOfComponents(CGColorSpaceRef self) {
    return O2ColorSpaceGetNumberOfComponents(self);
 }
-
-CFStringRef CGColorSpaceCopyName(CGColorSpaceRef cs)
-{
-#pragma message("not implemented")
-    return nil;
-}

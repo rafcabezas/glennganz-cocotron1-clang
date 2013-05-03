@@ -1,0 +1,2168 @@
+# HG changeset patch
+# User Raf <raf@remoterlabs.com>
+# Date 1367442788 14400
+# Parent  0f2dba58275cb9752a1139353c7ecf11cfc0bb23
+diff --git a/AppKit/AppKit.xcodeproj/project.pbxproj b/AppKit/AppKit.xcodeproj/project.pbxproj
+--- a/AppKit/AppKit.xcodeproj/project.pbxproj
++++ b/AppKit/AppKit.xcodeproj/project.pbxproj
+@@ -4124,6 +4124,20 @@
+ /* End PBXBuildRule section */
+ 
+ /* Begin PBXContainerItemProxy section */
++		0575206216FFEBA1004AE1C2 /* PBXContainerItemProxy */ = {
++			isa = PBXContainerItemProxy;
++			containerPortal = 6E46FEBE0A2D2DCF004CD27E /* Foundation.xcodeproj */;
++			proxyType = 2;
++			remoteGlobalIDString = C6EC42561386AABE00F6A9D5;
++			remoteInfo = "Foundation-Windows-i386 (clang)";
++		};
++		0575206416FFEBA1004AE1C2 /* PBXContainerItemProxy */ = {
++			isa = PBXContainerItemProxy;
++			containerPortal = 6E46FEBE0A2D2DCF004CD27E /* Foundation.xcodeproj */;
++			proxyType = 2;
++			remoteGlobalIDString = C6EEC555138508A50060A27A;
++			remoteInfo = "Foundation-Darwin-i386 (clang)";
++		};
+ 		6E46FEC70A2D2DCF004CD27E /* PBXContainerItemProxy */ = {
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = 6E46FEBE0A2D2DCF004CD27E /* Foundation.xcodeproj */;
+@@ -6176,9 +6190,11 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				FE01AACA0C5D9BCC00AEA51A /* Foundation.framework */,
++				0575206316FFEBA1004AE1C2 /* Foundation.framework */,
+ 				6E46FEC80A2D2DCF004CD27E /* Foundation.framework */,
+ 				6E46FECA0A2D2DCF004CD27E /* Foundation.framework */,
+ 				FED70ACA0C3B3FD9000CBE5B /* Foundation.framework */,
++				0575206516FFEBA1004AE1C2 /* Foundation.framework */,
+ 				FEE66D7A0C3D6F8A00FBED82 /* Foundation.framework */,
+ 				FE65206F0FBE3D3D00464BFD /* Foundation.framework */,
+ 				FED5359C0FE061B200F02667 /* Foundation.framework */,
+@@ -8747,6 +8763,20 @@
+ /* End PBXProject section */
+ 
+ /* Begin PBXReferenceProxy section */
++		0575206316FFEBA1004AE1C2 /* Foundation.framework */ = {
++			isa = PBXReferenceProxy;
++			fileType = wrapper.framework;
++			path = Foundation.framework;
++			remoteRef = 0575206216FFEBA1004AE1C2 /* PBXContainerItemProxy */;
++			sourceTree = BUILT_PRODUCTS_DIR;
++		};
++		0575206516FFEBA1004AE1C2 /* Foundation.framework */ = {
++			isa = PBXReferenceProxy;
++			fileType = wrapper.framework;
++			path = Foundation.framework;
++			remoteRef = 0575206416FFEBA1004AE1C2 /* PBXContainerItemProxy */;
++			sourceTree = BUILT_PRODUCTS_DIR;
++		};
+ 		6E46FEC80A2D2DCF004CD27E /* Foundation.framework */ = {
+ 			isa = PBXReferenceProxy;
+ 			fileType = wrapper.framework;
+@@ -11343,6 +11373,7 @@
+ 				PREBINDING = NO;
+ 				PRODUCT_NAME = AppKit;
+ 				SYMROOT = build/Windows/i386;
++				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/libjpeg/include /Developer/Cocotron/1.0/Windows/i386/zlib/include /Developer/Cocotron/1.0/Windows/i386/libpng/include";
+ 			};
+ 			name = Debug;
+ 		};
+@@ -11605,6 +11636,11 @@
+ 				INFOPLIST_FILE = Info.plist;
+ 				INSTALL_MODE_FLAG = "og-w,a+rX";
+ 				INSTALL_PATH = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
++				LIBRARY_SEARCH_PATHS = (
++					/Developer/Cocotron/1.0/Windows/i386/libjpeg/lib,
++					/Developer/Cocotron/1.0/Windows/i386/zlib/lib,
++					/Developer/Cocotron/1.0/Windows/i386/libpng/lib,
++				);
+ 				OTHER_CFLAGS = (
+ 					"-DWINVER=0x500",
+ 					"-DQUARTZCORE_INSIDE_BUILD",
+@@ -11629,11 +11665,15 @@
+ 					"-Wl,--export-all-symbols",
+ 					"-Wl,--image-base=0x20000000",
+ 					"-Wl,--out-implib,$TARGET_BUILD_DIR/AppKit.framework/libAppKit.a",
++					"-lz",
++					"-ljpeg",
++					"-lpng14.dll",
+ 				);
+ 				PREBINDING = NO;
+ 				PRODUCT_NAME = AppKit;
+ 				STRIP_INSTALLED_PRODUCT = YES;
+ 				SYMROOT = build/Windows/i386;
++				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/libjpeg/include /Developer/Cocotron/1.0/Windows/i386/zlib/include /Developer/Cocotron/1.0/Windows/i386/libpng/include";
+ 			};
+ 			name = Release;
+ 		};
+diff --git a/AppKit/NSEvent.subproj/NSEvent.h b/AppKit/NSEvent.subproj/NSEvent.h
+--- a/AppKit/NSEvent.subproj/NSEvent.h
++++ b/AppKit/NSEvent.subproj/NSEvent.h
+@@ -31,7 +31,15 @@
+    NSPlatformSpecificDisplayEvent=16,
+    NSAppKitSystem=17,
+    NSScrollWheel=18,
+-   NSApplicationDefined=19
++   NSApplicationDefined=19,
++    //More
++    NSEventTypeGesture,
++    NSEventTypeMagnify,
++    NSEventTypeSwipe,
++    NSEventTypeRotate,
++    NSEventTypeBeginGesture,
++    NSEventTypeEndGesture,
++
+ } NSEventType;
+ 
+ enum {
+diff --git a/AppKit/NSSegmentedControl/NSSegmentItem.m b/AppKit/NSSegmentedControl/NSSegmentItem.m
+--- a/AppKit/NSSegmentedControl/NSSegmentItem.m
++++ b/AppKit/NSSegmentedControl/NSSegmentItem.m
+@@ -1,10 +1,10 @@
+ /* Copyright (c) 2007 Christopher J. W. Lloyd, 2008 Johannes Fortmann
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
++ 
++ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
++ 
++ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++ 
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+ 
+ #import "NSSegmentItem.h"
+ #import <Foundation/NSString.h>
+@@ -13,107 +13,114 @@
+ 
+ @implementation NSSegmentItem
+ 
++- (id)init {
++	if ((self = [super init])) {
++		_isEnabled = YES;
++	}
++	return self;
++}
++
+ - (id)initWithCoder:(NSCoder *)decoder {
+-   _label=[[decoder decodeObjectForKey:@"NSSegmentItemLabel"] retain];
+-   _image=[[decoder decodeObjectForKey:@"NSSegmentItemImage"] retain];
+-   _isEnabled=![decoder decodeBoolForKey:@"NSSegmentItemDisabled"];
+-   _imageScaling=[decoder decodeIntForKey:@"NSSegmentItemImageScaling"];
+-   _isSelected=[decoder decodeBoolForKey:@"NSSegmentItemSelected"];
+-   _tag=[decoder decodeIntForKey:@"NSSegmentItemTag"];
+-   _width=[decoder decodeFloatForKey:@"NSSegmentItemWidth"];
+-   return self;
++    _label=[[decoder decodeObjectForKey:@"NSSegmentItemLabel"] retain];
++    _image=[[decoder decodeObjectForKey:@"NSSegmentItemImage"] retain];
++    _isEnabled=![decoder decodeBoolForKey:@"NSSegmentItemDisabled"];
++    _imageScaling=[decoder decodeIntForKey:@"NSSegmentItemImageScaling"];
++    _isSelected=[decoder decodeBoolForKey:@"NSSegmentItemSelected"];
++    _tag=[decoder decodeIntForKey:@"NSSegmentItemTag"];
++    _width=[decoder decodeFloatForKey:@"NSSegmentItemWidth"];
++    return self;
+ }
+ 
+ -(id)description {
+-   return [NSString stringWithFormat:@"%@ - %@ (%f)", [super description], _label, _width];
++    return [NSString stringWithFormat:@"%@ - %@ (%f) [%d]", [super description], _label, _width, _tag];
+ }
+ 
+ -(void)dealloc {
+-   [_image release];
+-   [_label release];
+-   [_menu release];
+-   [_toolTip release];
+-   [super dealloc];
++    [_image release];
++    [_label release];
++    [_menu release];
++    [_toolTip release];
++    [super dealloc];
+ }
+ 
+ -(int)tag {
+-   return _tag;
++    return _tag;
+ }
+ 
+ -(NSImage *)image {
+-   return _image;
++    return _image;
+ }
+ 
+ -(NSImageScaling)imageScaling {
+-   return _imageScaling;
++    return _imageScaling;
+ }
+ 
+ -(BOOL)isEnabled {
+-   return _isEnabled;
++    return _isEnabled;
+ }
+ 
+ -(BOOL)isSelected {
+-   return _isSelected;
++    return _isSelected;
+ }
+ 
+ -(NSString *)label {
+-   return _label;
++    return _label;
+ }
+ 
+ -(NSMenu *)menu {
+-   return _menu;
++    return _menu;
+ }
+ 
+ -(NSString *)toolTip {
+-   return _toolTip;
++    return _toolTip;
+ }
+ 
+--(float)width {
+-   return _width;
++-(CGFloat)width {
++    return _width;
+ }
+ 
+ -(void)setTag:(int)tag {
+-   _tag=tag;
++    _tag=tag;
+ }
+ 
+ -(void)setImage:(NSImage *)image {
+-   image=[image retain];
+-   [_image release];
+-   _image=image;
++    image=[image retain];
++    [_image release];
++    _image=image;
+ }
+ 
+ -(void)setEnabled:(BOOL)flag {
+-   _isEnabled=flag;
++    _isEnabled=flag;
+ }
+ 
+ -(void)setSelected:(BOOL)flag {
+-   _isSelected=flag;
++    _isSelected=flag;
+ }
+ 
+ -(void)setLabel:(NSString *)label {
+-   label=[label copy];
+-   [_label release];
+-   _label=label;
++    label=[label copy];
++    [_label release];
++    _label=label;
+ }
+ 
+ -(void)setMenu:(NSMenu *)menu {
+-   menu=[menu retain];
+-   [_menu release];
+-   _menu=menu;
++    menu=[menu retain];
++    [_menu release];
++    _menu=menu;
+ }
+ 
+ -(void)setToolTip:(NSString *)toolTip {
+-   toolTip=[toolTip copy];
+-   [_toolTip release];
+-   _toolTip=toolTip;
++    toolTip=[toolTip copy];
++    [_toolTip release];
++    _toolTip=toolTip;
+ }
+ 
+--(void)setWidth:(float)width {
+-   _width=width;
++-(void)setWidth:(CGFloat)width {
++    _width=width;
+ }
+ 
+ -(void)setImageScaling:(NSImageScaling)value {
+-   _imageScaling=value;
++    _imageScaling=value;
+ }
+ 
+ @end
+diff --git a/AppKit/NSSegmentedControl/NSSegmentedCell.h b/AppKit/NSSegmentedControl/NSSegmentedCell.h
+--- a/AppKit/NSSegmentedControl/NSSegmentedCell.h
++++ b/AppKit/NSSegmentedControl/NSSegmentedCell.h
+@@ -1,28 +1,29 @@
+ /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
++ 
++ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
++ 
++ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++ 
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+ 
+ #import <AppKit/NSActionCell.h>
+ #import <AppKit/NSSegmentedControl.h>
+ 
+ typedef enum {
+-   NSSegmentSwitchTrackingSelectOne,
+-   NSSegmentSwitchTrackingSelectAny,
+-   NSSegmentSwitchTrackingMomentary
++    NSSegmentSwitchTrackingSelectOne,
++    NSSegmentSwitchTrackingSelectAny,
++    NSSegmentSwitchTrackingMomentary
+ } NSSegmentSwitchTracking;
+ 
+ @interface NSSegmentedCell : NSActionCell {
+-   NSMutableArray         *_segments;
+-   NSSegmentStyle          _style;
+-   NSSegmentSwitchTracking _trackingMode;
+-   NSRect                  _lastDrawRect;
+-   int                     _selectedSegment;
+-   int                     _firstTrackingSegmentIndex;
+-   BOOL                    _firstTrackingSegmentInitialState;
++    NSMutableArray         *_segments;
++    NSMutableArray         *_segmentComputedWidths;
++    NSSegmentStyle          _style;
++    NSSegmentSwitchTracking _trackingMode;
++    NSRect                  _lastDrawRect;
++    int                     _selectedSegment;
++    int                     _firstTrackingSegmentIndex;
++    BOOL                    _firstTrackingSegmentInitialState;
+ }
+ 
+ -(NSInteger)segmentCount;
+diff --git a/AppKit/NSSegmentedControl/NSSegmentedCell.m b/AppKit/NSSegmentedControl/NSSegmentedCell.m
+--- a/AppKit/NSSegmentedControl/NSSegmentedCell.m
++++ b/AppKit/NSSegmentedControl/NSSegmentedCell.m
+@@ -1,10 +1,10 @@
+ /* Copyright (c) 2006-2007 Christopher J. W. Lloyd, 2008 Johannes Fortmann
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
++ 
++ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
++ 
++ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++ 
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+ 
+ #import <AppKit/NSSegmentedCell.h>
+ #import <AppKit/NSRaise.h>
+@@ -12,93 +12,111 @@
+ #import <AppKit/NSButtonCell.h>
+ #import <AppKit/NSPopUpWindow.h>
+ 
++@interface NSSegmentedCell (Private)
++- (void)_recomputeSegmentWidths;
++@end
++
+ @implementation NSSegmentedCell
+ 
+ // For manually created segment cells
+-- (id)init {
+-	if (self = [super init]) {
+-		_segments = [[NSMutableArray arrayWithCapacity: 5] retain];
++- (id)initImageCell:(NSImage *)image {
++	if ((self = [super initImageCell:image])) {
++		_segments = [[NSMutableArray arrayWithCapacity:5] retain];
+ 		_selectedSegment = NSNotFound; // initially empty
+ 		_trackingMode = NSSegmentSwitchTrackingSelectOne; // default
+ 	}
+ 	return self;
+ }
+ 
++- (id)initTextCell:(NSString *)str {
++    return [self initImageCell:nil];
++}
++
+ // For nib created segment cells
+--initWithCoder:(NSCoder *)coder {
+-   [super initWithCoder:coder];
+-   
+-   _segments=[[coder decodeObjectForKey:@"NSSegmentImages"] retain];
+-   _selectedSegment=[coder decodeIntForKey:@"NSSelectedSegment"];
+-   _trackingMode=[coder decodeIntForKey:@"NSTrackingMode"];
+-      
+-   return self;
+-      }
+-   
++- (id)initWithCoder:(NSCoder *)coder {
++    [super initWithCoder:coder];
++    
++    _segments = [[coder decodeObjectForKey:@"NSSegmentImages"] retain];
++    if ( !_segments)
++        _segments = [[NSMutableArray arrayWithCapacity:5] retain];
++    
++    if ([coder containsValueForKey:@"NSSelectedSegment"])
++        _selectedSegment = [coder decodeIntForKey:@"NSSelectedSegment"];
++    else
++        _selectedSegment = NSNotFound;
++    
++    _trackingMode = [coder decodeIntForKey:@"NSTrackingMode"];
++    
++    [self _recomputeSegmentWidths];
++    
++    return self;
++}
++
+ -(void)dealloc {
+-   [_segments release];
+-   [super dealloc];
++    [_segments release];
++    [_segmentComputedWidths release];
++    [super dealloc];
+ }
+ 
+ -(NSInteger)segmentCount {
+-   return [_segments count];
++    return [_segments count];
+ }
+ 
+ -(NSSegmentStyle)segmentStyle {
+-   return _style;
++    return _style;
+ }
+ 
+ -(NSSegmentSwitchTracking)trackingMode {
+-   return _trackingMode;
++    return _trackingMode;
+ }
+ 
+ -(NSInteger)tagForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] tag];
++    return [[_segments objectAtIndex:segment] tag];
+ }
+ 
+ -(NSImage *)imageForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] image];
++    return [[_segments objectAtIndex:segment] image];
+ }
+ 
+ -(BOOL)isEnabledForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] isEnabled];
++    return [[_segments objectAtIndex:segment] isEnabled];
+ }
+ 
+ -(NSString *)labelForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] label];
++    return [[_segments objectAtIndex:segment] label];
+ }
+ 
+ -(NSMenu *)menuForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] menu];
++    return [[_segments objectAtIndex:segment] menu];
+ }
+ 
+ -(NSString *)toolTipForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] toolTip];
++    return [[_segments objectAtIndex:segment] toolTip];
+ }
+ 
+ -(CGFloat)widthForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] width];
++    return [[_segments objectAtIndex:segment] width];
+ }
+ 
+ -(NSImageScaling)imageScalingForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] imageScaling];
++    return [[_segments objectAtIndex:segment] imageScaling];
+ }
+-   
++
+ -(NSInteger)selectedSegment {
+-   
+-   if(_selectedSegment==NSNotFound) {
+-      int i,count=[_segments count];
+-   
+-      for(i=0;i<count;i++)
+-         if([[_segments objectAtIndex:i] isSelected])
+-            return i;
+-   }
+-   
+-   return _selectedSegment;
++    
++    if(_selectedSegment==NSNotFound) {
++        int i,count=[_segments count];
++        
++        for(i=0;i<count;i++)
++            if([[_segments objectAtIndex:i] isSelected])
++                return i;
++    }
++    
++    return _selectedSegment;
+ }
+ 
+ -(BOOL)isSelectedForSegment:(NSInteger)segment {
+-   return [[_segments objectAtIndex:segment] isSelected];
++    return [[_segments objectAtIndex:segment] isSelected];
+ }
+ 
+ -(void)setSegmentCount:(NSInteger)count {
+@@ -114,256 +132,323 @@
+ 			[_segments removeLastObject];
+ 		}
+ 	}
++    [self _recomputeSegmentWidths];
+ }
+ 
+ -(void)setSegmentStyle:(NSSegmentStyle)value {
+-   _style=value;
++    _style=value;
+ }
+ 
+ -(void)setTrackingMode:(NSSegmentSwitchTracking)trackingMode {
+-   _trackingMode=trackingMode;
++    _trackingMode=trackingMode;
+ }
+ 
+ -(void)setTag:(NSInteger)tag forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setTag:tag];
++    [[_segments objectAtIndex:segment] setTag:tag];
+ }
+ 
+ -(void)setImage:(NSImage *)image forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setImage:image];
++    [[_segments objectAtIndex:segment] setImage:image];
++    [self _recomputeSegmentWidths];
+ }
+ 
+ -(void)setEnabled:(BOOL)enabled forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setEnabled:enabled];
++    [[_segments objectAtIndex:segment] setEnabled:enabled];
+ }
+ 
+ -(void)setLabel:(NSString *)label forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setLabel:label];
++    [[_segments objectAtIndex:segment] setLabel:label];
++    [self _recomputeSegmentWidths];
+ }
+ 
+ -(void)setMenu:(NSMenu *)menu forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setMenu:menu];
++    [[_segments objectAtIndex:segment] setMenu:menu];
+ }
+ 
+ -(void)setToolTip:(NSString *)string forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setToolTip:string];
++    [[_segments objectAtIndex:segment] setToolTip:string];
+ }
+ 
+ -(void)setWidth:(CGFloat)width forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setWidth:width];
++    [[_segments objectAtIndex:segment] setWidth:width];
++    [self _recomputeSegmentWidths];
+ }
+ 
+ -(void)setImageScaling:(NSImageScaling)value forSegment:(NSInteger)segment {
+-   [[_segments objectAtIndex:segment] setImageScaling:value];
++    [[_segments objectAtIndex:segment] setImageScaling:value];
+ }
+ 
+ -(BOOL)selectSegmentWithTag:(NSInteger)tag {
+-   int i,count=[_segments count];   
+-   for(i=0;i<count;i++)
+-    if([[_segments objectAtIndex:i] tag]==tag){
+-       [self setSelectedSegment:i];
+-     return YES;
+-    }
+-   return NO;
++    int i,count=[_segments count];
++    for(i=0;i<count;i++)
++        if([[_segments objectAtIndex:i] tag]==tag){
++            [self setSelectedSegment:i];
++            return YES;
++        }
++    return NO;
+ }
+ 
+ -(void)setSelected:(BOOL)flag forSegment:(NSInteger)segment {
+-   [self willChangeValueForKey:@"selectedSegment"];
+-   _selectedSegment=NSNotFound;  // will be recomputed in -selectedSegment
+-   [[_segments objectAtIndex:segment] setSelected:flag];
+-   [self didChangeValueForKey:@"selectedSegment"];
++    [self willChangeValueForKey:@"selectedSegment"];
++    _selectedSegment=NSNotFound;  // will be recomputed in -selectedSegment
++    [[_segments objectAtIndex:segment] setSelected:flag];
++    [self didChangeValueForKey:@"selectedSegment"];
+ }
+ 
+ -(void)setSelectedSegment:(NSInteger)segment {
+-   for(NSSegmentItem *item in _segments)
+-    [item setSelected:NO];
+-
+-   _selectedSegment=segment;
+-   [[_segments objectAtIndex:segment] setSelected:YES];
++    for(NSSegmentItem *item in _segments)
++        [item setSelected:NO];
++    
++    _selectedSegment=segment;
++    [[_segments objectAtIndex:segment] setSelected:YES];
+ }
+ 
+ -(void)makeNextSegmentKey {
+-   NSUnimplementedMethod();
++    NSUnimplementedMethod();
+ }
+ -(void)makePreviousSegmentKey {
+-   NSUnimplementedMethod();
++    NSUnimplementedMethod();
++}
++
++-(void)setFont:(NSFont *)font {
++    [super setFont:font];
++    [self _recomputeSegmentWidths];
++}
++
++-(void)_recomputeSegmentWidths {
++    if ( !_segmentComputedWidths)
++        _segmentComputedWidths = [[NSMutableArray arrayWithCapacity:5] retain];
++    else
++        [_segmentComputedWidths removeAllObjects];
++    
++    CGFloat x = 0;
++    NSDictionary *textAttrs = nil;
++    
++    int i,count=[_segments count];
++    for(i=0;i<count;i++) {
++        NSSegmentItem *segment = [_segments objectAtIndex:i];
++        double w = [segment width];
++        if (w <= 0.0) {
++            if ( !textAttrs) {
++                textAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
++                             [self font], NSFontAttributeName,
++                             nil];
++            }
++            NSString *label = [segment label];
++            if ([label length] > 0) {
++                NSSize textSize = [label sizeWithAttributes:textAttrs];
++                w = ceil(textSize.width + 12);
++            } else if ([segment image]) {
++                w = ceil([[segment image] size].width + 12);
++            } else {
++                w  = 5;  // truly empty segment, but still needs to be drawn at some size
++            }
++        }
++        [_segmentComputedWidths addObject:[NSNumber numberWithDouble:w]];
++    }
+ }
+ 
+ -(void)drawSegment:(NSInteger)idx inFrame:(NSRect)frame withView:(NSView *)view {
+-   NSSegmentItem *segment=[_segments objectAtIndex:idx];
+-   NSButtonCell *cell=[NSButtonCell new];
+-   NSString *label=[segment label];
+-   [cell setTitle:label];
+-   
+-   [cell setHighlighted:[segment isSelected]];
+-   [cell setEnabled:[segment isEnabled]];
+-   
+-   NSImage *image=[segment image];
+-   if(image)
+-   {
+-      [cell setImage:image];
+-      if([label length])
+-      {
+-         [cell setImagePosition:NSImageLeft];
+-      }
+-      else
+-      {
+-         // center if no label
+-         [cell setImagePosition:NSImageOnly];
+-      }
+-      // TODO: image scaling is unimplemented for NSButtonCell
+-      // [cell setImageScaling:[segment imageScaling]];
+-   }
+-
+-   // TODO: implement setLineBreakMode on NSCell
+-   //[cell setLineBreakMode:NSLineBreakByTruncatingTail];
+-   
+-   [cell setControlView:view];
+-   [cell drawWithFrame:frame inView:view];
+-   
+-   [cell release];
++    NSSegmentItem *segment=[_segments objectAtIndex:idx];
++    NSButtonCell *cell=[NSButtonCell new];
++    NSString *label=[segment label];
++    [cell setTitle:label];
++    
++    [cell setHighlighted:[segment isSelected]];
++	
++	// The control is enabled/disabled as a whole
++    [cell setEnabled:[self isEnabled]];
++    
++    NSImage *image=[segment image];
++    if(image)
++    {
++        [cell setImage:image];
++        // a button cell is created as a text cell - so we need to say that we want
++        // image dimming
++        [cell setImageDimsWhenDisabled: YES];
++        
++        if([label length])
++        {
++            [cell setImagePosition:NSImageLeft];
++        }
++        else
++        {
++            // center if no label
++            [cell setImagePosition:NSImageOnly];
++        }
++        // TODO: image scaling is unimplemented for NSButtonCell
++        // [cell setImageScaling:[segment imageScaling]];
++    }
++    
++    // TODO: implement setLineBreakMode on NSCell
++    //[cell setLineBreakMode:NSLineBreakByTruncatingTail];
++    
++    [cell setControlView:view];
++    [cell drawWithFrame:frame inView:view];
++    
++    [cell release];
+ }
+ 
+ - (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
++    
++    int i=0, count=[self segmentCount];
++    NSRect segmentFrame=cellFrame;
++    
++    if ([_segmentComputedWidths count]!=count)
++        [self _recomputeSegmentWidths];
++    
++    for(i=0; i<count; i++) {
++        segmentFrame.size.width=[[_segmentComputedWidths objectAtIndex:i] doubleValue];
++        [NSGraphicsContext saveGraphicsState];
++        // Make sure that segment drawing is not allowed to spill out into other segments
++        NSBezierPath* clipPath = [NSBezierPath bezierPathWithRect: segmentFrame];
++        [clipPath addClip];
++        [self drawSegment:i inFrame:segmentFrame withView:controlView];
++        [NSGraphicsContext restoreGraphicsState];
++        segmentFrame.origin.x+=segmentFrame.size.width;
++    }
++    
++    _lastDrawRect=cellFrame;
++}
+ 
+-   int i=0, count=[self segmentCount];
+-   NSRect segmentFrame=cellFrame;
+-   
+-   for(i=0; i<count; i++) {
+-      segmentFrame.size.width=[[_segments objectAtIndex:i] width];
+-      [self drawSegment:i inFrame:segmentFrame withView:controlView];
+-      segmentFrame.origin.x+=segmentFrame.size.width;
+-   }
+-   
+-   _lastDrawRect=cellFrame;
++// updating this value in -drawWithFrame is not enough, because a subclass might have replaced it entirely.
++// hence NSSegmentedControl will call this private method as well.
++- (void)_wasDrawnWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
++    _lastDrawRect=cellFrame;
+ }
+ 
+ -(NSInteger)_segmentForPoint:(NSPoint)point {
+-   int i=0, count=[self segmentCount];
+-   NSRect segmentFrame=_lastDrawRect;
+-
+-   for(i=0; i<count; i++) {
+-      NSSegmentItem *item=[_segments objectAtIndex:i];
+-      
+-      segmentFrame.size.width=[item width];
+-      if(NSPointInRect(point, segmentFrame)) {
+-         return i;
+-      }
+-      segmentFrame.origin.x+=segmentFrame.size.width;
+-   }
+-   return NSNotFound;
++    int i=0, count=[self segmentCount];
++    NSRect segmentFrame=_lastDrawRect;
++    if (segmentFrame.size.height <= 0.0)
++        segmentFrame.size.height = 100;
++    
++    if ([_segmentComputedWidths count]!=count)
++        [self _recomputeSegmentWidths];
++    
++    for(i=0; i<count; i++) {
++        NSSegmentItem *item=[_segments objectAtIndex:i];
++        
++        segmentFrame.size.width=[[_segmentComputedWidths objectAtIndex:i] doubleValue];
++        if(NSPointInRect(point, segmentFrame)) {
++            return i;
++        }
++        segmentFrame.origin.x+=segmentFrame.size.width;
++    }
++    return NSNotFound;
+ }
+ 
+ - (BOOL)startTrackingAt:(NSPoint)startPoint inView:(NSView *)controlView {
+-   // save the segment clicked on and its state
+-   _firstTrackingSegmentIndex=[self _segmentForPoint:[controlView convertPoint:startPoint fromView:nil]];
+-   NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
+-   if(![trackingItem isEnabled])
+-      return YES;
+-
+-   _firstTrackingSegmentInitialState=[trackingItem isSelected];
+-   [trackingItem setSelected:!_firstTrackingSegmentInitialState];
+-
+-   [self continueTracking:startPoint at:startPoint inView:controlView];
+-   return YES;
++    // save the segment clicked on and its state
++    _firstTrackingSegmentIndex=[self _segmentForPoint:[controlView convertPoint:startPoint fromView:nil]];
++    NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
++    if(![trackingItem isEnabled])
++        return YES;
++    
++    _firstTrackingSegmentInitialState=[trackingItem isSelected];
++    [trackingItem setSelected:!_firstTrackingSegmentInitialState];
++    
++    [self continueTracking:startPoint at:startPoint inView:controlView];
++    return YES;
+ }
+ 
+ - (BOOL)continueTracking:(NSPoint)lastPoint at:(NSPoint)currentPoint inView:(NSView *)controlView {
+-   currentPoint=[controlView convertPoint:currentPoint fromView:nil];
+-   lastPoint=[controlView convertPoint:lastPoint fromView:nil];
+-   
+-   NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
+-   if(![trackingItem isEnabled])
+-      return YES;
+-
+-   int currentSegmentIdx=[self _segmentForPoint:currentPoint];
+-   
+-   // change segments state depending on if inside or outside
+-   if(currentSegmentIdx==_firstTrackingSegmentIndex)  // we're inside, so switch state relative to initial state
+-   {
+-      [trackingItem setSelected:!_firstTrackingSegmentInitialState];
+-   }
+-   else  // we're outside, so state is initial state
+-   {
+-      [trackingItem setSelected:_firstTrackingSegmentInitialState];
+-   }
+-   
+-   [controlView setNeedsDisplayInRect:_lastDrawRect];
+-
+-   return YES;
++    currentPoint=[controlView convertPoint:currentPoint fromView:nil];
++    lastPoint=[controlView convertPoint:lastPoint fromView:nil];
++    
++    NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
++    if(![trackingItem isEnabled])
++        return YES;
++    
++    int currentSegmentIdx=[self _segmentForPoint:currentPoint];
++    
++    // change segments state depending on if inside or outside
++    if(currentSegmentIdx==_firstTrackingSegmentIndex)  // we're inside, so switch state relative to initial state
++    {
++        [trackingItem setSelected:!_firstTrackingSegmentInitialState];
++    }
++    else  // we're outside, so state is initial state
++    {
++        [trackingItem setSelected:_firstTrackingSegmentInitialState];
++    }
++    
++    [controlView setNeedsDisplayInRect:_lastDrawRect];
++    
++    return YES;
+ }
+ 
+ - (void)stopTracking:(NSPoint)lastPoint at:(NSPoint)stopPoint inView:(NSView *)controlView mouseIsUp:(BOOL)flag {
+-   [self continueTracking:lastPoint at:stopPoint inView:controlView];
+-   
+-   NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
+-   if(![trackingItem isEnabled])
+-      return;
+-   
+-   [self willChangeValueForKey:@"selectedSegment"];
+-   _selectedSegment=NSNotFound;
+-   // if segment is still switched, it'll be the new "selected segment"
+-   if([trackingItem isSelected]!=_firstTrackingSegmentInitialState)
+-   {
+-      _selectedSegment=_firstTrackingSegmentIndex;
+-   }
+-
+-   // adapt other segments to fit tracking model
+-   switch(_trackingMode)
+-   {
+-      case NSSegmentSwitchTrackingMomentary:
+-      {
+-         // deactivate all segments
+-         for(NSSegmentItem *item in _segments)
+-         {
+-            [item setSelected:NO];
+-         }
+-         break;
+-      }
+-      case NSSegmentSwitchTrackingSelectAny:
+-      {
+-         // nothing
+-         break;
+-      }
+-      case NSSegmentSwitchTrackingSelectOne:
+-      {
+-         if(_selectedSegment!=NSNotFound)
+-         {
++    [self continueTracking:lastPoint at:stopPoint inView:controlView];
++    
++    NSSegmentItem *trackingItem=[_segments objectAtIndex:_firstTrackingSegmentIndex];
++    if(![trackingItem isEnabled])
++        return;
++    
++    [self willChangeValueForKey:@"selectedSegment"];
++    _selectedSegment=NSNotFound;
++    // if segment is still switched, it'll be the new "selected segment"
++    if([trackingItem isSelected]!=_firstTrackingSegmentInitialState)
++    {
++        _selectedSegment=_firstTrackingSegmentIndex;
++    }
++    
++    // adapt other segments to fit tracking model
++    switch(_trackingMode)
++    {
++        case NSSegmentSwitchTrackingMomentary:
++        {
++            // deactivate all segments
+             for(NSSegmentItem *item in _segments)
+             {
+-               [item setSelected:NO];
++                [item setSelected:NO];
+             }
+-            // select only the selected item
+-            [[_segments objectAtIndex:_selectedSegment] setSelected:YES];
+-         }
+-         break;
+-      }
+-   }
+-   [self didChangeValueForKey:@"selectedSegment"];
+-   
++            break;
++        }
++        case NSSegmentSwitchTrackingSelectAny:
++        {
++            // nothing
++            break;
++        }
++        case NSSegmentSwitchTrackingSelectOne:
++        {
++            if(_selectedSegment!=NSNotFound)
++            {
++                for(NSSegmentItem *item in _segments)
++                {
++                    [item setSelected:NO];
++                }
++                // select only the selected item
++                [[_segments objectAtIndex:_selectedSegment] setSelected:YES];
++            }
++            break;
++        }
++    }
++    [self didChangeValueForKey:@"selectedSegment"];
++    
+ }
+ 
+ -(BOOL)trackMouse:(NSEvent *)event inRect:(NSRect)cellFrame ofView:(NSView *)controlView untilMouseUp:(BOOL)flag {
+-   NSPoint        startPoint=[event locationInWindow];
+-   NSInteger      segmentUnderMouse=[self _segmentForPoint:[controlView convertPoint:startPoint fromView:nil]];
+-   
+-   if(segmentUnderMouse==NSNotFound)
++    NSPoint        startPoint=[event locationInWindow];
++    NSInteger      segmentUnderMouse=[self _segmentForPoint:[controlView convertPoint:startPoint fromView:nil]];
++    
++    if(segmentUnderMouse==NSNotFound)
++        return YES;
++    
++    NSSegmentItem *trackingItem=[_segments objectAtIndex:segmentUnderMouse];
++    
++    if(![trackingItem isEnabled])
++        return YES;
++    
++    NSMenu *menu=[trackingItem menu];
++    
++    if(menu==nil)
++        return [super trackMouse:event inRect:cellFrame ofView:controlView untilMouseUp:flag];
++    
++    [self setSelectedSegment:segmentUnderMouse];
++    
++    [NSMenu popUpContextMenu:menu withEvent:event forView:controlView];
++    
+     return YES;
+-    
+-   NSSegmentItem *trackingItem=[_segments objectAtIndex:segmentUnderMouse];
+-
+-   if(![trackingItem isEnabled])
+-      return YES;
+-
+-   NSMenu *menu=[trackingItem menu];
+-   
+-   if(menu==nil)
+-    return [super trackMouse:event inRect:cellFrame ofView:controlView untilMouseUp:flag];
+-   
+-   [self setSelectedSegment:segmentUnderMouse];
+-   
+-   [NSMenu popUpContextMenu:menu withEvent:event forView:controlView];
+-   
+-   return YES;
+ }
+ 
+ @end
+@@ -376,4 +461,4 @@
+     return [super _replacementKeyPathForBinding:binding];
+ }
+ 
+-@end
+\ No newline at end of file
++@end
+diff --git a/AppKit/NSSegmentedControl/NSSegmentedControl.h b/AppKit/NSSegmentedControl/NSSegmentedControl.h
+--- a/AppKit/NSSegmentedControl/NSSegmentedControl.h
++++ b/AppKit/NSSegmentedControl/NSSegmentedControl.h
+@@ -20,7 +20,7 @@
+ };
+ typedef NSInteger NSSegmentStyle;
+ 
+-@interface NSSegmentedControl : NSControl
++@interface NSSegmentedControl : NSControl;
+ 
+ -(NSInteger)segmentCount;
+ -(NSSegmentStyle)segmentStyle;
+diff --git a/AppKit/NSSegmentedControl/NSSegmentedControl.m b/AppKit/NSSegmentedControl/NSSegmentedControl.m
+--- a/AppKit/NSSegmentedControl/NSSegmentedControl.m
++++ b/AppKit/NSSegmentedControl/NSSegmentedControl.m
+@@ -1,176 +1,198 @@
+ /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
++ 
++ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
++ 
++ The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++ 
++ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+ 
+ #import <AppKit/NSSegmentedControl.h>
+ #import <AppKit/NSSegmentedCell.h>
+ 
++@interface NSSegmentedCell (PrivateToControlView)
++- (void)_wasDrawnWithFrame:(NSRect)cellFrame inView:(NSView *)controlView;
++@end
++
+ @implementation NSSegmentedControl
+++(Class)cellClass {
++	return [NSSegmentedCell class];
++}
+ 
+ -(NSInteger)segmentCount {
+-   return [_cell segmentCount];
++    return [_cell segmentCount];
+ }
+ 
+ -(NSSegmentStyle)segmentStyle {
+-   return [_cell segmentStyle];
++    return [_cell segmentStyle];
+ }
+ 
+ -(NSInteger)tagForSegment:(NSInteger)segment {
+-   return [_cell tagForSegment:segment];
++    return [_cell tagForSegment:segment];
+ }
+ 
+ -(NSImage *)imageForSegment:(NSInteger)segment {
+-   return [_cell imageForSegment:segment];
++    return [_cell imageForSegment:segment];
+ }
+ 
+ -(BOOL)isEnabledForSegment:(NSInteger)segment {
+-   return [_cell isEnabledForSegment:segment];
++    return [_cell isEnabledForSegment:segment];
+ }
+ 
+ -(NSString *)labelForSegment:(NSInteger)segment {
+-   return [_cell labelForSegment:segment];
++    return [_cell labelForSegment:segment];
+ }
+ 
+ -(NSMenu *)menuForSegment:(NSInteger)segment {
+-   return [_cell menuForSegment:segment];
++    return [_cell menuForSegment:segment];
+ }
+ 
+ -(NSString *)toolTipForSegment:(NSInteger)segment {
+-   return [_cell toolTipForSegment:segment];
++    return [_cell toolTipForSegment:segment];
+ }
+ 
+ -(CGFloat)widthForSegment:(NSInteger)segment {
+-   return [_cell widthForSegment:segment];
++    return [_cell widthForSegment:segment];
+ }
+ 
+ -(NSImageScaling)imageScalingForSegment:(NSInteger)segment {
+-   return [_cell imageScalingForSegment:segment];
++    return [_cell imageScalingForSegment:segment];
+ }
+ 
+ -(NSInteger)selectedSegment {
+-   return [_cell selectedSegment];
++    return [_cell selectedSegment];
+ }
+ 
+ -(BOOL)isSelectedForSegment:(NSInteger)segment {
+-   return [_cell isSelectedForSegment:segment];
++    return [_cell isSelectedForSegment:segment];
+ }
+ 
+ -(void)setSegmentCount:(NSInteger)count {
+-   [_cell setSegmentCount:count];
++    [_cell setSegmentCount:count];
+ }
+ 
+ -(void)setSegmentStyle:(NSSegmentStyle)value {
+-   [_cell setSegmentStyle:value];
+-   [self setNeedsDisplay:YES];
++    [_cell setSegmentStyle:value];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(void)setTag:(NSInteger)tag forSegment:(NSInteger)segment {
+-   [_cell setTag:tag forSegment:segment];
++    [_cell setTag:tag forSegment:segment];
+ }
+ 
+ -(void)setImage:(NSImage *)image forSegment:(NSInteger)segment {
+-   [_cell setImage:image forSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setImage:image forSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(void)setEnabled:(BOOL)enabled forSegment:(NSInteger)segment {
+-   [_cell setEnabled:enabled forSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setEnabled:enabled forSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(void)setLabel:(NSString *)label forSegment:(NSInteger)segment {
+-   [_cell setLabel:label forSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setLabel:label forSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(void)setMenu:(NSMenu *)menu forSegment:(NSInteger)segment {
+-   [_cell setMenu:menu forSegment:segment];
++    [_cell setMenu:menu forSegment:segment];
+ }
+ 
+ -(void)setToolTip:(NSString *)string forSegment:(NSInteger)segment {
+-   [_cell setToolTip:string forSegment:segment];
++    [_cell setToolTip:string forSegment:segment];
+ }
+ 
+ -(void)setWidth:(CGFloat)width forSegment:(NSInteger)segment {
+-   [_cell setWidth:width forSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setWidth:width forSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(void)setImageScaling:(NSImageScaling)value forSegment:(NSInteger)segment {
+-   [_cell setImageScaling:value forSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setImageScaling:value forSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(BOOL)selectSegmentWithTag:(NSInteger)tag {
+-   BOOL result=[_cell selectSegmentWithTag:tag];
+-
+-   [self setNeedsDisplay:YES];
+-
+-   return result;
++    BOOL result=[_cell selectSegmentWithTag:tag];
++    
++    [self setNeedsDisplay:YES];
++    
++    return result;
+ }
+ 
+ -(void)setSelected:(BOOL)flag forSegment:(NSInteger)segment {
+-   [_cell setSelected:flag forSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setSelected:flag forSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
+ 
+ -(void)setSelectedSegment:(NSInteger)segment {
+-   [_cell setSelectedSegment:segment];
+-   [self setNeedsDisplay:YES];
++    [_cell setSelectedSegment:segment];
++    [self setNeedsDisplay:YES];
+ }
++
++-(void)drawRect:(NSRect)rect {
++    [super drawRect:rect];
++    [_cell _wasDrawnWithFrame:rect inView:self];
++}
++
+ @end
+ 
+ @implementation NSSegmentedControl (Bindings)
+ -(id)_cell
+ {
+-   return _cell;
++    return _cell;
+ }
+ 
+ -(id)_selectedLabel
+ {
+-   return [_cell labelForSegment:[_cell selectedSegment]];
++    return [_cell labelForSegment:[_cell selectedSegment]];
+ }
+ 
+ -(void)_setSelectedLabel:(id)label
+ {
+-   int idx=[[_cell valueForKeyPath:@"segments.label"] indexOfObject:label];
+-   return [_cell setSelectedSegment:idx];
++    int idx=[[_cell valueForKeyPath:@"segments.label"] indexOfObject:label];
++    [_cell setSelectedSegment:idx];
++	[self setNeedsDisplay:YES];
+ }
+ 
+ +(NSSet*)keyPathsForValuesAffectingSelectedLabel
+ {
+-   return [NSSet setWithObject:@"cell.selectedSegment"];
++    return [NSSet setWithObject:@"cell.selectedSegment"];
+ }
+ 
+--(NSInteger)_selectedTag
++// selectedTag is implemented by NSControl - so no need for a fancy bindings version
++-(NSInteger)selectedTag
+ {
+-   return [_cell tagForSegment:[_cell selectedSegment]];
++	NSInteger selectedSegment = [_cell selectedSegment];
++	NSInteger tag = -1;
++	if (selectedSegment != -1) {
++		tag = [_cell tagForSegment: selectedSegment];
++	}
++    return tag;
+ }
+ 
+ -(void)_setSelectedTag:(NSInteger)tag
+ {
+-   [_cell selectSegmentWithTag:tag];
++    [_cell selectSegmentWithTag:tag];
++	[self setNeedsDisplay:YES];
+ }
+ 
+ +(NSSet*)keyPathsForValuesAffectingSelectedTag {
+-   return [NSSet setWithObject:@"cell.selectedSegment"];
++    return [NSSet setWithObject:@"cell.selectedSegment"];
+ }
+ 
+ -(NSInteger)_selectedIndex
+ {
+-   return [_cell selectedSegment];
++    return [_cell selectedSegment];
+ }
+ 
+ -(void)_setSelectedIndex:(NSInteger)idx
+ {
+-   [_cell setSelectedSegment:idx];
++    [_cell setSelectedSegment:idx];
++	[self setNeedsDisplay:YES];
+ }
+ 
+ +(NSSet*)keyPathsForValuesAffectingSelectedIndex {
+-   return [NSSet setWithObject:@"cell.selectedSegment"];
++    return [NSSet setWithObject:@"cell.selectedSegment"];
+ }
+ @end
+diff --git a/CoreGraphics/CGColorSpace.h b/CoreGraphics/CGColorSpace.h
+--- a/CoreGraphics/CGColorSpace.h
++++ b/CoreGraphics/CGColorSpace.h
+@@ -38,3 +38,4 @@
+ 
+ COREGRAPHICS_EXPORT CGColorSpaceModel CGColorSpaceGetModel(CGColorSpaceRef self);
+ COREGRAPHICS_EXPORT size_t CGColorSpaceGetNumberOfComponents(CGColorSpaceRef self);
++COREGRAPHICS_EXPORT CFStringRef CGColorSpaceCopyName(CGColorSpaceRef cs);
+\ No newline at end of file
+diff --git a/CoreGraphics/CGColorSpace.m b/CoreGraphics/CGColorSpace.m
+--- a/CoreGraphics/CGColorSpace.m
++++ b/CoreGraphics/CGColorSpace.m
+@@ -40,3 +40,9 @@
+ size_t CGColorSpaceGetNumberOfComponents(CGColorSpaceRef self) {
+    return O2ColorSpaceGetNumberOfComponents(self);
+ }
++
++CFStringRef CGColorSpaceCopyName(CGColorSpaceRef cs)
++{
++#pragma message("not implemented")
++    return nil;
++}
+diff --git a/CoreGraphics/CGEvent.h b/CoreGraphics/CGEvent.h
+--- a/CoreGraphics/CGEvent.h
++++ b/CoreGraphics/CGEvent.h
+@@ -11,3 +11,5 @@
+ @interface CGEvent : NSObject
+ 
+ @end
++
++typedef struct __CGEvent *CGEventRef;
+diff --git a/CoreGraphics/CGGeometry.h b/CoreGraphics/CGGeometry.h
+--- a/CoreGraphics/CGGeometry.h
++++ b/CoreGraphics/CGGeometry.h
+@@ -11,6 +11,7 @@
+ #import <stdbool.h>
+ 
+ COREGRAPHICS_EXPORT const CGRect CGRectZero;
++COREGRAPHICS_EXPORT const CGRect CGRectNull;
+ COREGRAPHICS_EXPORT const CGPoint CGPointZero;
+ COREGRAPHICS_EXPORT const CGSize CGSizeZero;
+ 
+@@ -61,6 +62,14 @@
+    return ((a.x==b.x) && (a.y==b.y))?TRUE:FALSE;
+ }
+ 
++static inline bool CGSizeEqualToSize(CGSize a, CGSize b) {
++    return ((a.height==b.height)&&(a.width==b.width))?TRUE:FALSE;
++}
++
++static inline bool CGRectEqualToRect(CGRect a, CGRect b) {
++    return (CGSizeEqualToSize(a.size, b.size)&&CGPointEqualToPoint(a.origin, b.origin))?TRUE:FALSE;
++}
++
+ static inline CGRect CGRectInset(CGRect rect,CGFloat dx,CGFloat dy) {
+    rect.origin.x+=dx;
+    rect.origin.y+=dy;
+@@ -73,6 +82,10 @@
+    return ((rect.size.width==0) && (rect.size.height==0))?TRUE:FALSE;
+ }
+ 
++static inline bool CGRectIsNull(CGRect rect) {
++    return ((CGRectEqualToRect(rect, CGRectNull)))?TRUE:FALSE;
++}
++
+ static inline bool CGRectIntersectsRect(CGRect a, CGRect b)
+ {
+     if(b.origin.x > a.origin.x + a.size.width)
+diff --git a/CoreGraphics/CGGeometry.m b/CoreGraphics/CGGeometry.m
+--- a/CoreGraphics/CGGeometry.m
++++ b/CoreGraphics/CGGeometry.m
+@@ -9,5 +9,6 @@
+ #import <CoreGraphics/CGGeometry.h>
+ 
+ const CGRect CGRectZero={{0,0},{0,0}};
++const CGRect CGRectNull={{INFINITY,INFINITY},{0,0}};
+ const CGPoint CGPointZero={0,0};
+ const CGSize CGSizeZero={0,0};
+diff --git a/CoreText/CTFont.h b/CoreText/CTFont.h
+--- a/CoreText/CTFont.h
++++ b/CoreText/CTFont.h
+@@ -23,6 +23,7 @@
+ 
+ CORETEXT_EXPORT CTFontRef CTFontCreateWithGraphicsFont(CGFontRef cgFont,CGFloat size,CGAffineTransform *xform,id attributes);
+ CORETEXT_EXPORT CTFontRef CTFontCreateUIFontForLanguage(CTFontUIFontType uiFontType,CGFloat size,NSString *language);
++CORETEXT_EXPORT CTFontRef CTFontCreateWithName(CFStringRef name,CGFloat size,NSString *language);
+ CORETEXT_EXPORT CFStringRef CTFontCopyFullName(CTFontRef self);
+ CORETEXT_EXPORT CGFloat   CTFontGetSize(CTFontRef self);
+ CORETEXT_EXPORT size_t    CTFontGetGlyphCount(CTFontRef self);
+diff --git a/CoreText/CTFont.m b/CoreText/CTFont.m
+--- a/CoreText/CTFont.m
++++ b/CoreText/CTFont.m
+@@ -17,6 +17,11 @@
+    return [[KTFont alloc] initWithUIFontType:uiFontType size:size language:language];
+ }
+ 
++CTFontRef CTFontCreateWithName(CFStringRef name,CGFloat size,NSString *language) {
++    
++    return [[KTFont alloc] initWithFont:CGFontCreateWithFontName(name) size:size];
++}
++
+ CFStringRef CTFontCopyFullName(CTFontRef self) {
+    return [self copyName];
+ }
+diff --git a/CoreVideo/CoreVideo.xcodeproj/project.pbxproj b/CoreVideo/CoreVideo.xcodeproj/project.pbxproj
+--- a/CoreVideo/CoreVideo.xcodeproj/project.pbxproj
++++ b/CoreVideo/CoreVideo.xcodeproj/project.pbxproj
+@@ -28,6 +28,20 @@
+ /* End PBXBuildRule section */
+ 
+ /* Begin PBXContainerItemProxy section */
++		057527131700E7D2004AE1C2 /* PBXContainerItemProxy */ = {
++			isa = PBXContainerItemProxy;
++			containerPortal = 50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */;
++			proxyType = 2;
++			remoteGlobalIDString = C6EC42561386AABE00F6A9D5;
++			remoteInfo = "Foundation-Windows-i386 (clang)";
++		};
++		057527151700E7D2004AE1C2 /* PBXContainerItemProxy */ = {
++			isa = PBXContainerItemProxy;
++			containerPortal = 50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */;
++			proxyType = 2;
++			remoteGlobalIDString = C6EEC555138508A50060A27A;
++			remoteInfo = "Foundation-Darwin-i386 (clang)";
++		};
+ 		50ACFD4A1275F6F3008BEDDD /* PBXContainerItemProxy */ = {
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = 50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */;
+@@ -102,33 +116,34 @@
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
+ 			proxyType = 2;
+-			remoteGlobalIDString = 8DC2EF5B0486A6940098B216 /* OpenGL.framework */;
++			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+ 			remoteInfo = "OpenGL-Windows-i386";
+ 		};
+ 		FE2A2D0812D2C7760028C06D /* PBXContainerItemProxy */ = {
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
+ 			proxyType = 2;
+-			remoteGlobalIDString = C8E0BE8A0F0E544700677729 /* OpenGL.framework */;
++			remoteGlobalIDString = C8E0BE8A0F0E544700677729;
+ 			remoteInfo = "OpenGL-Darwin-i386";
+ 		};
+ 		FE2A2D0A12D2C7760028C06D /* PBXContainerItemProxy */ = {
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
+ 			proxyType = 2;
+-			remoteGlobalIDString = FE5A876310C6F244005E348A /* OpenGL.framework */;
++			remoteGlobalIDString = FE5A876310C6F244005E348A;
+ 			remoteInfo = "OpenGL-FreeBSD-i386";
+ 		};
+ 		FE2A2D0C12D2C77C0028C06D /* PBXContainerItemProxy */ = {
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */;
+ 			proxyType = 1;
+-			remoteGlobalIDString = 8DC2EF4F0486A6940098B216 /* OpenGL-Windows-i386 */;
++			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+ 			remoteInfo = "OpenGL-Windows-i386";
+ 		};
+ /* End PBXContainerItemProxy section */
+ 
+ /* Begin PBXFileReference section */
++		057527061700E7D2004AE1C2 /* objc.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = objc.framework; path = ../objc/build/Windows/i386/Release/objc.framework; sourceTree = "<group>"; };
+ 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+ 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+ 		50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Foundation.xcodeproj; path = ../Foundation/Foundation.xcodeproj; sourceTree = SOURCE_ROOT; };
+@@ -165,6 +180,7 @@
+ 		0867D691FE84028FC02AAC07 /* CoreVideo */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				057527061700E7D2004AE1C2 /* objc.framework */,
+ 				FE2A2D0012D2C7760028C06D /* OpenGL.xcodeproj */,
+ 				50ACFD3D1275F6F3008BEDDD /* Foundation.xcodeproj */,
+ 				FE43045A11E2779700EBDD56 /* CVReturn.h */,
+@@ -224,9 +240,11 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				50ACFD4B1275F6F3008BEDDD /* Foundation.framework */,
++				057527141700E7D2004AE1C2 /* Foundation.framework */,
+ 				50ACFD4D1275F6F3008BEDDD /* Foundation.framework */,
+ 				50ACFD4F1275F6F3008BEDDD /* Foundation.framework */,
+ 				50ACFD511275F6F3008BEDDD /* Foundation.framework */,
++				057527161700E7D2004AE1C2 /* Foundation.framework */,
+ 				50ACFD531275F6F3008BEDDD /* Foundation.framework */,
+ 				50ACFD551275F6F3008BEDDD /* Foundation.framework */,
+ 				50ACFD571275F6F3008BEDDD /* Foundation.framework */,
+@@ -321,6 +339,20 @@
+ /* End PBXProject section */
+ 
+ /* Begin PBXReferenceProxy section */
++		057527141700E7D2004AE1C2 /* Foundation.framework */ = {
++			isa = PBXReferenceProxy;
++			fileType = wrapper.framework;
++			path = Foundation.framework;
++			remoteRef = 057527131700E7D2004AE1C2 /* PBXContainerItemProxy */;
++			sourceTree = BUILT_PRODUCTS_DIR;
++		};
++		057527161700E7D2004AE1C2 /* Foundation.framework */ = {
++			isa = PBXReferenceProxy;
++			fileType = wrapper.framework;
++			path = Foundation.framework;
++			remoteRef = 057527151700E7D2004AE1C2 /* PBXContainerItemProxy */;
++			sourceTree = BUILT_PRODUCTS_DIR;
++		};
+ 		50ACFD4B1275F6F3008BEDDD /* Foundation.framework */ = {
+ 			isa = PBXReferenceProxy;
+ 			fileType = wrapper.framework;
+@@ -462,7 +494,10 @@
+ 				DEPLOYMENT_POSTPROCESSING = YES;
+ 				DSTROOT = /;
+ 				EXECUTABLE_SUFFIX = .1.0.dll;
+-				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
++				FRAMEWORK_SEARCH_PATHS = (
++					/Developer/Cocotron/1.0/Windows/i386/Frameworks,
++					"\"$(SRCROOT)/../objc/build/Windows/i386/Release\"",
++				);
+ 				GCC_C_LANGUAGE_STANDARD = gnu99;
+ 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+ 				GCC_PREFIX_HEADER = "";
+diff --git a/Foundation/NSGeometry.h b/Foundation/NSGeometry.h
+--- a/Foundation/NSGeometry.h
++++ b/Foundation/NSGeometry.h
+@@ -40,6 +40,7 @@
+ FOUNDATION_EXPORT BOOL NSEqualPoints(NSPoint point0,NSPoint point1);
+ FOUNDATION_EXPORT NSString *NSStringFromPoint(NSPoint point);
+ FOUNDATION_EXPORT NSPoint NSPointFromString(NSString *string);
++FOUNDATION_EXPORT NSPoint NSPointFromCGPoint(CGPoint point);
+ 
+ //
+ FOUNDATION_EXPORT const NSSize NSZeroSize;
+diff --git a/Foundation/NSGeometry.m b/Foundation/NSGeometry.m
+--- a/Foundation/NSGeometry.m
++++ b/Foundation/NSGeometry.m
+@@ -200,3 +200,7 @@
+             point.y>NSMinY(rect)  && point.y<=NSMaxY(rect));
+ }
+ 
++NSPoint NSPointFromCGPoint(CGPoint point) {
++    return NSMakePoint(point.x, point.y);
++}
++
+diff --git a/Foundation/NSString/NSString.m b/Foundation/NSString/NSString.m
+--- a/Foundation/NSString/NSString.m
++++ b/Foundation/NSString/NSString.m
+@@ -554,12 +554,14 @@
+ }
+ 
+ -(NSComparisonResult)localizedCompare:(NSString *)other {
+-   NSUnimplementedMethod();
+-   return 0;
++//   NSUnimplementedMethod();
++//   return 0;
++    return [self compare:other]; //for now
+ }
+ -(NSComparisonResult)localizedCaseInsensitiveCompare:(NSString *)other {
+-   NSUnimplementedMethod();
+-   return 0;
++   //NSUnimplementedMethod();
++    //return 0;
++    return [self caseInsensitiveCompare:other]; //for now
+ }
+ 
+ -(NSUInteger)hash {
+diff --git a/IOKit/IOKit.xcodeproj/project.pbxproj b/IOKit/IOKit.xcodeproj/project.pbxproj
+--- a/IOKit/IOKit.xcodeproj/project.pbxproj
++++ b/IOKit/IOKit.xcodeproj/project.pbxproj
+@@ -190,7 +190,11 @@
+ 			isa = PBXProject;
+ 			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "IOKit" */;
+ 			compatibilityVersion = "Xcode 3.1";
++			developmentRegion = English;
+ 			hasScannedForEncodings = 1;
++			knownRegions = (
++				en,
++			);
+ 			mainGroup = 0867D691FE84028FC02AAC07 /* IOKit */;
+ 			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+ 			projectDirPath = "";
+diff --git a/IOKit/IOKitLib.m b/IOKit/IOKitLib.m
+--- a/IOKit/IOKitLib.m
++++ b/IOKit/IOKitLib.m
+@@ -7,7 +7,7 @@
+ #import <Foundation/NSNumber.h>
+ #import <Foundation/NSData.h>
+ #import <Foundation/NSDictionary.h>
+-#import <windows.h>
++#import </Developer/Cocotron//1.0/Windows/i386/llvm-clang-trunk/i386-pc-mingw32msvc/include/windows.h>
+ #import <Iphlpapi.h>
+ 
+ static NSData *PrimaryEthernetMAC(){
+@@ -154,7 +154,9 @@
+ }
+ 
+ kern_return_t IORegistryEntryGetParentEntry(io_registry_entry_t entry,const io_name_t plane,io_registry_entry_t *parent) {
+-   *parent=[entry createParentEntry:CFSTR(plane)];
++    
++    
++    *parent = [entry createParentEntry:CFStringMakeConstant(plane)];
+    return 0;
+ }
+ 
+diff --git a/InstallCDT-2011-05-04/install_GLUT.sh b/InstallCDT-2011-05-04/install_GLUT.sh
+--- a/InstallCDT-2011-05-04/install_GLUT.sh
++++ b/InstallCDT-2011-05-04/install_GLUT.sh
+@@ -5,7 +5,7 @@
+ productFolder=/Developer/Cocotron/1.0
+ downloadFolder=$productFolder/Downloads
+ 
+-PREFIX=/Developer/Cocotron/1.0/Windows/i386/gcc-4.3.1/i386-mingw32msvc/
++PREFIX=/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/
+ 
+ $scriptResources/downloadFilesIfNeeded.sh $downloadFolder "http://www.opengl.org/resources/libraries/glut/glutdlls36.zip"
+ 
+diff --git a/InstallCDT-2011-05-04/install_OpenSSL.sh b/InstallCDT-2011-05-04/install_OpenSSL.sh
+--- a/InstallCDT-2011-05-04/install_OpenSSL.sh
++++ b/InstallCDT-2011-05-04/install_OpenSSL.sh
+@@ -5,7 +5,7 @@
+ productFolder=/Developer/Cocotron/1.0
+ downloadFolder=$productFolder/Downloads
+ 
+-PREFIX=/Developer/Cocotron/1.0/Windows/i386/gcc-4.3.1/i386-mingw32msvc/
++PREFIX=/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/
+ INCLUDE=$PREFIX/include
+ BIN=$PREFIX/bin
+ LIB=$PREFIX/lib
+diff --git a/O2Context_AntiGrain/O2Context_AntiGrain.xcodeproj/project.pbxproj b/O2Context_AntiGrain/O2Context_AntiGrain.xcodeproj/project.pbxproj
+--- a/O2Context_AntiGrain/O2Context_AntiGrain.xcodeproj/project.pbxproj
++++ b/O2Context_AntiGrain/O2Context_AntiGrain.xcodeproj/project.pbxproj
+@@ -320,7 +320,10 @@
+ 				GCC_DYNAMIC_NO_PIC = NO;
+ 				GCC_MODEL_TUNING = G5;
+ 				GCC_OPTIMIZATION_LEVEL = 0;
+-				HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/agg-2.4/include/";
++				HEADER_SEARCH_PATHS = (
++					"/Developer/Cocotron/1.0/Windows/i386/agg-2.4/include/",
++					"/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/",
++				);
+ 				INFOPLIST_FILE = Info.plist;
+ 				INSTALL_PATH = /Developer/Cocotron/1.0/Windows/i386/Frameworks/AppKit.framework/Resources;
+ 				OTHER_CFLAGS = "-D__LITTLE_ENDIAN__";
+@@ -347,7 +350,10 @@
+ 				EXECUTABLE_SUFFIX = .1.0.dll;
+ 				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
+ 				GCC_MODEL_TUNING = G5;
+-				HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/agg-2.4/include/";
++				HEADER_SEARCH_PATHS = (
++					"/Developer/Cocotron/1.0/Windows/i386/agg-2.4/include/",
++					"/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/",
++				);
+ 				INFOPLIST_FILE = Info.plist;
+ 				INSTALL_PATH = /Developer/Cocotron/1.0/Windows/i386/Frameworks/AppKit.framework/Resources;
+ 				LIBRARY_SEARCH_PATHS = (
+diff --git a/Onyx2D/O2Font_ttf.m b/Onyx2D/O2Font_ttf.m
+--- a/Onyx2D/O2Font_ttf.m
++++ b/Onyx2D/O2Font_ttf.m
+@@ -16,6 +16,7 @@
+    return (O2Glyph)(int)NSMapGet(_nameToGlyph,name);
+ }
+ 
++#if 0
+ O2FontRef O2FontCreateWithFontName_platform(NSString *name) {
+    return nil;
+ }
+@@ -23,5 +24,5 @@
+ O2FontRef O2FontCreateWithDataProvider_platform(O2DataProviderRef provider) {
+    return nil;
+ }
+-
++#endif
+ @end
+diff --git a/Onyx2D/Onyx2D.xcodeproj/project.pbxproj b/Onyx2D/Onyx2D.xcodeproj/project.pbxproj
+--- a/Onyx2D/Onyx2D.xcodeproj/project.pbxproj
++++ b/Onyx2D/Onyx2D.xcodeproj/project.pbxproj
+@@ -658,6 +658,20 @@
+ /* End PBXBuildRule section */
+ 
+ /* Begin PBXContainerItemProxy section */
++		058C2CB3172DF55100693FEF /* PBXContainerItemProxy */ = {
++			isa = PBXContainerItemProxy;
++			containerPortal = FE081BAA118A165F0026A20E /* Foundation.xcodeproj */;
++			proxyType = 2;
++			remoteGlobalIDString = C6EC42561386AABE00F6A9D5;
++			remoteInfo = "Foundation-Windows-i386 (clang)";
++		};
++		058C2CB5172DF55100693FEF /* PBXContainerItemProxy */ = {
++			isa = PBXContainerItemProxy;
++			containerPortal = FE081BAA118A165F0026A20E /* Foundation.xcodeproj */;
++			proxyType = 2;
++			remoteGlobalIDString = C6EEC555138508A50060A27A;
++			remoteInfo = "Foundation-Darwin-i386 (clang)";
++		};
+ 		FE081BB7118A165F0026A20E /* PBXContainerItemProxy */ = {
+ 			isa = PBXContainerItemProxy;
+ 			containerPortal = FE081BAA118A165F0026A20E /* Foundation.xcodeproj */;
+@@ -1219,9 +1233,11 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				FE081BB8118A165F0026A20E /* Foundation.framework */,
++				058C2CB4172DF55100693FEF /* Foundation.framework */,
+ 				FE081BBA118A165F0026A20E /* Foundation.framework */,
+ 				FE081BBC118A165F0026A20E /* Foundation.framework */,
+ 				FE081BBE118A165F0026A20E /* Foundation.framework */,
++				058C2CB6172DF55100693FEF /* Foundation.framework */,
+ 				FE081BC0118A165F0026A20E /* Foundation.framework */,
+ 				FE081BC2118A165F0026A20E /* Foundation.framework */,
+ 				FE081BC4118A165F0026A20E /* Foundation.framework */,
+@@ -1763,6 +1779,20 @@
+ /* End PBXProject section */
+ 
+ /* Begin PBXReferenceProxy section */
++		058C2CB4172DF55100693FEF /* Foundation.framework */ = {
++			isa = PBXReferenceProxy;
++			fileType = wrapper.framework;
++			path = Foundation.framework;
++			remoteRef = 058C2CB3172DF55100693FEF /* PBXContainerItemProxy */;
++			sourceTree = BUILT_PRODUCTS_DIR;
++		};
++		058C2CB6172DF55100693FEF /* Foundation.framework */ = {
++			isa = PBXReferenceProxy;
++			fileType = wrapper.framework;
++			path = Foundation.framework;
++			remoteRef = 058C2CB5172DF55100693FEF /* PBXContainerItemProxy */;
++			sourceTree = BUILT_PRODUCTS_DIR;
++		};
+ 		FE081BB8118A165F0026A20E /* Foundation.framework */ = {
+ 			isa = PBXReferenceProxy;
+ 			fileType = wrapper.framework;
+@@ -2216,6 +2246,7 @@
+ 				PRODUCT_NAME = Onyx2D;
+ 				STRIP_INSTALLED_PRODUCT = YES;
+ 				SYMROOT = build/Windows/i386;
++				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/";
+ 			};
+ 			name = Debug;
+ 		};
+@@ -2256,6 +2287,7 @@
+ 				PRODUCT_NAME = Onyx2D;
+ 				STRIP_INSTALLED_PRODUCT = YES;
+ 				SYMROOT = build/Windows/i386;
++				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/";
+ 			};
+ 			name = Release;
+ 		};
+diff --git a/UIKit/NSDisplay.m b/UIKit/NSDisplay.m
+--- a/UIKit/NSDisplay.m
++++ b/UIKit/NSDisplay.m
+@@ -29,7 +29,7 @@
+ }
+ 
+ -init {
+-   _eventMask=0;
++   //_eventMask=0;
+    _eventQueue=[NSMutableArray new];
+    return self;
+ }
+@@ -95,7 +95,7 @@
+ -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
+    NSEvent *result=nil;
+ 
+-   _eventMask=mask;
++   //_eventMask=mask;
+ 
+    if([_eventQueue count])
+       untilDate=[NSDate date];
+diff --git a/UIKit/UIApplication.h b/UIKit/UIApplication.h
+--- a/UIKit/UIApplication.h
++++ b/UIKit/UIApplication.h
+@@ -77,9 +77,13 @@
+ 
+ 
+ @interface UIApplication : UIResponder {
++    NSEvent *_currentEvent;
++    id _display;
+    id              _delegate;
+    NSMutableArray *_windows;
+-   UIWindow       *_keyWindow;
++    UIWindow       *_keyWindow;
++    UIWindow       *_mainWindow;
++    bool _isRunning;
+ }
+ 
+ @property(nonatomic,assign) id<UIApplicationDelegate> delegate;
+diff --git a/UIKit/UIApplication.m b/UIKit/UIApplication.m
+--- a/UIKit/UIApplication.m
++++ b/UIKit/UIApplication.m
+@@ -1,3 +1,5 @@
++#import <Foundation/Foundation.h>
++#import <AppKit/AppKit.h>
+ #import <UIKit/UIApplication.h>
+ #import <UIKit/UINib.h>
+ #import <UIKit/UIEvent.h>
+@@ -138,6 +140,7 @@
+ }
+ 
+ int UIApplicationMain (int argc,char *argv[],NSString *applicationClassName,NSString *appDelegateClassName) {
++#if 0
+    NSInitializeProcess(argc,(const char **)argv);
+    {
+     NSAutoreleasePool *pool=[NSAutoreleasePool new];
+@@ -164,6 +167,7 @@
+     [app run];
+    }
+    return 0;
++#endif
+ }
+ 
+ @end
+diff --git a/UIKit/UIKit.xcodeproj/project.pbxproj b/UIKit/UIKit.xcodeproj/project.pbxproj
+--- a/UIKit/UIKit.xcodeproj/project.pbxproj
++++ b/UIKit/UIKit.xcodeproj/project.pbxproj
+@@ -7,6 +7,7 @@
+ 	objects = {
+ 
+ /* Begin PBXBuildFile section */
++		057527021700E762004AE1C2 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 057527011700E762004AE1C2 /* AppKit.framework */; };
+ 		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
+ 		FE0FE169129465E90014B5E9 /* CATransaction.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FE167129465E90014B5E9 /* CATransaction.h */; };
+ 		FE0FE16A129465E90014B5E9 /* CATransaction.m in Sources */ = {isa = PBXBuildFile; fileRef = FE0FE168129465E90014B5E9 /* CATransaction.m */; };
+@@ -426,6 +427,8 @@
+ /* End PBXContainerItemProxy section */
+ 
+ /* Begin PBXFileReference section */
++		057527011700E762004AE1C2 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = ../../../../../System/Library/Frameworks/AppKit.framework; sourceTree = "<group>"; };
++		057527041700E7AF004AE1C2 /* objc.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = objc.framework; path = ../objc/build/Windows/i386/Release/objc.framework; sourceTree = "<group>"; };
+ 		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+ 		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+ 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+@@ -756,6 +759,7 @@
+ 			isa = PBXFrameworksBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				057527021700E762004AE1C2 /* AppKit.framework in Frameworks */,
+ 				FE67A05412888C8700CD9BEF /* Foundation.framework in Frameworks */,
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+@@ -773,6 +777,8 @@
+ 		0867D691FE84028FC02AAC07 /* UIKit */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				057527041700E7AF004AE1C2 /* objc.framework */,
++				057527011700E762004AE1C2 /* AppKit.framework */,
+ 				FE5F4DFB12A8A17400F5F334 /* UIGraphics.h */,
+ 				FE5F4DFC12A8A17400F5F334 /* UIGraphics.m */,
+ 				FEBA28221291CB3100E4347B /* UIKit.h */,
+@@ -1726,7 +1732,11 @@
+ 				DEPLOYMENT_POSTPROCESSING = YES;
+ 				DSTROOT = /;
+ 				EXECUTABLE_SUFFIX = .1.0.dll;
+-				FRAMEWORK_SEARCH_PATHS = /Developer/Cocotron/1.0/Windows/i386/Frameworks;
++				FRAMEWORK_SEARCH_PATHS = (
++					/Developer/Cocotron/1.0/Windows/i386/Frameworks,
++					"\"$(SRCROOT)/../../../Developer/Cocotron_llvm/1.0/Windows/i386/Frameworks\"",
++					"\"$(SRCROOT)/../objc/build/Windows/i386/Release\"",
++				);
+ 				GCC_C_LANGUAGE_STANDARD = gnu99;
+ 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+ 				GCC_ENABLE_CPP_RTTI = NO;
+@@ -1744,6 +1754,7 @@
+ 				GCC_WARN_SIGN_COMPARE = NO;
+ 				GCC_WARN_UNUSED_FUNCTION = YES;
+ 				GCC_WARN_UNUSED_LABEL = YES;
++				HEADER_SEARCH_PATHS = /Volumes/Data/Developer/Cocotron_llvm/1.0/Windows/i386/Frameworks/CoreFoundation.framework/Versions/A/Headers;
+ 				INFOPLIST_FILE = Info.plist;
+ 				INSTALL_MODE_FLAG = "og-w,a+rX";
+ 				INSTALL_PATH = /Developer/Cocotron/Touch/Windows/i386/Frameworks;
+diff --git a/UIKit/UINib.m b/UIKit/UINib.m
+--- a/UIKit/UINib.m
++++ b/UIKit/UINib.m
+@@ -2,9 +2,9 @@
+ 
+ @implementation UINib
+ 
+-+(UINib *)nibWithData:(NSData *)data bundle:(NSBundle *)bundle;
+-+(UINib *)nibWithNibName:(NSString *)name bundle:(NSBundle *)bundle;
+++(UINib *) nibWithData:(NSData *)data bundle:(NSBundle *)bundle{return nil;};
+++(UINib *) nibWithNibName:(NSString *)name bundle:(NSBundle *)bundle{return nil;};
+ 
+--(NSArray *)instantiateWithOwner:owner options:(NSDictionary *)options;
++-(NSArray *)instantiateWithOwner:owner options:(NSDictionary *)options{return nil;};
+ 
+ @end
+diff --git a/UIKit/platform_Windows/Win32Display.m b/UIKit/platform_Windows/Win32Display.m
+--- a/UIKit/platform_Windows/Win32Display.m
++++ b/UIKit/platform_Windows/Win32Display.m
+@@ -11,7 +11,7 @@
+ #import <AppKit/Win32Cursor.h>
+ #import <Onyx2D/O2Context_gdi.h>
+ #import <AppKit/Win32DeviceContextWindow.h>
+-#import "O2Context_gdi+AppKit.h"
++//#import "O2Context_gdi+AppKit.h"
+ #import <AppKit/Win32EventInputSource.h>
+ 
+ #import <AppKit/NSScreen.h>
+@@ -1295,7 +1295,7 @@
+    //setup.rtMinMargin=0;
+ 
+    [self stopWaitCursor];
+-   PageSetupDlg(&setup);
++   //PageSetupDlg(&setup);
+    [self startWaitCursor];
+ }
+ 
+@@ -1326,7 +1326,7 @@
+    printProperties.hSetupTemplate=NULL; 
+ 
+    [self stopWaitCursor];
+-   check=PrintDlg(&printProperties);
++   //check=PrintDlg(&printProperties);
+    [self startWaitCursor];
+ 
+    if(check==0)
+diff --git a/objc/objc_property.m b/objc/objc_property.m
+--- a/objc/objc_property.m
++++ b/objc/objc_property.m
+@@ -6,6 +6,44 @@
+ #import <Foundation/NSObject.h>
+ #import <Foundation/NSRaiseException.h>
+ 
++#define ACCESSORS_HASH(POINTER) ((((size_t)POINTER >> 8) ^ (size_t)POINTER))
++
++//raf- Based on libobjc's implementation from: libobj http://gcc.gnu.org/svn/gcc/branches/cilkplus/libobjc
++
++/* The property accessors automatically call various methods from the
++ Foundation library (eg, GNUstep-base).  These methods are not
++ implemented here, but we need to declare them so we can compile the
++ runtime.  The Foundation library will need to provide
++ implementations of these methods (most likely in the root class,
++ eg, NSObject) as the accessors only work with objects of classes
++ that implement these methods.  */
++@interface _libobjcNSObject
++- (id) copyWithZone: (void *)zone;
++- (id) mutableCopyWithZone: (void *)zone;
++@end
++#define COPY(X)         [((_libobjcNSObject *)(X)) copyWithZone: NULL]
++#define MUTABLE_COPY(X) [((_libobjcNSObject *)(X)) mutableCopyWithZone: NULL]
++
++
++#if OBJC_WITH_GC
++
++#  define AUTORELEASE(X)  (X)
++#  define RELEASE(X)
++#  define RETAIN(X)       (X)
++
++#else
++
++@interface _libobjcNSObject (RetainReleaseMethods)
++- (id) autorelease;
++- (oneway void) release;
++- (id) retain;
++@end
++#  define AUTORELEASE(X)  [((_libobjcNSObject *)(X)) autorelease]
++#  define RELEASE(X)      [((_libobjcNSObject *)(X)) release]
++#  define RETAIN(X)       [((_libobjcNSObject *)(X)) retain]
++
++#endif
++
+ 
+ const char *property_getAttributes(objc_property_t property){
+    return property->attributes;
+@@ -21,43 +59,182 @@
+    return *ivar=value;
+ }
+ 
+-void objc_copyStruct(void *dest, const void *src, size_t size, BOOL atomic,BOOL hasStrong) {
+-   int i;
+-   
+-   for(i=0;i<size;i++)
+-    ((uint8_t *)dest)[i]=((uint8_t *)src)[i];
++/* This is the function that the Apple/NeXT runtime has instead of
++ objc_getPropertyStruct and objc_setPropertyStruct.  We include it
++ for API compatibility (just for people who may have used
++ objc_copyStruct on the NeXT runtime thinking it was a public API);
++ the compiler never generates calls to it with the GNU runtime.
++ This function is clumsy because it requires two locks instead of
++ one.  */
++void
++objc_copyStruct (void *destination, const void *source, size_t size, BOOL is_atomic, BOOL __attribute__((unused)) has_strong)
++{
++    if (is_atomic == NO)
++        memcpy (destination, source, size);
++    else
++    {
++        /* We don't know which one is the property, so we have to lock
++         both.  One of them is most likely a temporary buffer in the
++         local stack and we really wouldn't want to lock it (our
++         objc_getPropertyStruct and objc_setPropertyStruct functions
++         don't lock it).  Note that if we're locking more than one
++         accessor lock at once, we need to always lock them in the
++         same order to avoid deadlocks.  */
++        
++        if (ACCESSORS_HASH (source) == ACCESSORS_HASH (destination))
++        {
++            /* A lucky collision.  */
++            @synchronized((void *)source) {
++                memcpy ((void *)destination, source, size);
++            }
++            return;
++        }
++        
++        if (ACCESSORS_HASH (source) > ACCESSORS_HASH (destination))
++        {
++            @synchronized((void *)source) {
++                @synchronized((void *)destination) {
++                    memcpy (destination, source, size);
++                }
++            }
++        }
++        else
++        {
++            @synchronized((void *)destination) {
++                @synchronized((void *)source) {
++                    memcpy (destination, source, size);
++                }
++            }
++        }
++    }
+ }
+ 
+-
+-void objc_setProperty (id self, SEL _cmd, size_t offset, id value, BOOL isAtomic, BOOL shouldCopy)
++/* The compiler uses this function when implementing some synthesized
++ setters for properties of type 'id'.
++ 
++ PS: Note how 'should_copy' is declared 'BOOL' but then actually
++ takes values from 0 to 2.  This hack was introduced by Apple; we
++ do the same for compatibility reasons.  */
++void
++objc_setProperty (id self, SEL __attribute__((unused)) _cmd, size_t offset, id new_value, BOOL is_atomic, BOOL should_copy)
+ {
+-	if(isAtomic)
+-	{
+-	//	NSUnimplementedFunction();
+-	}
+-	void *buffer=(void*)self+offset;
+-	id oldValue=*(id*)buffer;
+-	
+-	if(shouldCopy)
+-     value=[value copy];
+-	else
+-     value=[value retain];
+-	
+-    *(id*)buffer=value;
+-	
+-	[oldValue release];
++    if (self != nil)
++    {
++        id *pointer_to_ivar = (id *)((char *)self + offset);
++        id retained_value;
++#if !OBJC_WITH_GC
++        id old_value;
++#endif
++        
++        switch (should_copy)
++        {
++            case 0: /* retain */
++            {
++                if (*pointer_to_ivar == new_value)
++                    return;
++                retained_value = RETAIN (new_value);
++                break;
++            }
++            case 2: /* mutable copy */
++            {
++                retained_value = MUTABLE_COPY (new_value);
++                break;
++            }
++            case 1: /* copy */
++            default:
++            {
++                retained_value = COPY (new_value);
++                break;
++            }
++        }
++        
++        if (is_atomic == NO)
++        {
++#if !OBJC_WITH_GC
++            old_value = *pointer_to_ivar;
++#endif
++            *pointer_to_ivar = retained_value;
++        }
++        else
++        {
++            @synchronized((void *)pointer_to_ivar) {
++#if !OBJC_WITH_GC
++                old_value = *pointer_to_ivar;
++#endif
++                *pointer_to_ivar = retained_value;
++            }
++        }
++#if !OBJC_WITH_GC
++        RELEASE (old_value);
++#endif
++    }
+ }
+ 
+-id objc_getProperty (id self, SEL _cmd, size_t offset, BOOL isAtomic)
++/* The compiler uses this function when implementing some synthesized
++ getters for properties of type 'id'.  */
++id
++objc_getProperty (id self, SEL __attribute__((unused)) _cmd, size_t offset, BOOL is_atomic)
+ {
+-	if(isAtomic)
+-	{
+-	//	NSUnimplementedFunction();
+-	}
+-
+-	void *buffer=(void*)self+offset;
+-	id value=*(id*)buffer;
+-	
+-	return value;
++    if (self != nil)
++    {
++        id *pointer_to_ivar = (id *)((char *)self + offset);
++        
++        
++        if (is_atomic == NO)
++        {
++            /* Note that in this case, we do not RETAIN/AUTORELEASE the
++             returned value.  The programmer should do it if it is
++             needed.  Since access is non-atomic, other threads can be
++             ignored and the caller has full control of what happens
++             to the object and whether it needs to be RETAINed or not,
++             so it makes sense to leave the decision to him/her.  This
++             is also what the Apple/NeXT runtime does.  */
++            return *pointer_to_ivar;
++        }
++        else
++        {
++            id result;
++            @synchronized((void*)pointer_to_ivar) {
++                result = RETAIN (*(pointer_to_ivar));
++            }
++            return AUTORELEASE (result);
++        }
++    }
++    
++    return nil;
+ }
+ 
++
++/* The compiler uses this function when implementing some synthesized
++ getters for properties of arbitrary C types.  The data is just
++ copied.  Compatibility Note: this function does not exist in the
++ Apple/NeXT runtime.  */
++void
++objc_getPropertyStruct (void *destination, const void *source, size_t size, BOOL is_atomic, BOOL __attribute__((unused)) has_strong)
++{
++    if (is_atomic == NO)
++        memcpy (destination, source, size);
++    else
++    {
++        @synchronized((void *)source) {
++            memcpy (destination, source, size);
++        }
++    }
++}
++
++/* The compiler uses this function when implementing some synthesized
++ setters for properties of arbitrary C types.  The data is just
++ copied.  Compatibility Note: this function does not exist in the
++ Apple/NeXT runtime.  */
++void
++objc_setPropertyStruct (void *destination, const void *source, size_t size, BOOL is_atomic, BOOL __attribute__((unused)) has_strong)
++{
++    if (is_atomic == NO)
++        memcpy (destination, source, size);
++    else
++    {
++        @synchronized(destination) {
++            memcpy (destination, source, size);
++        }
++    }
++}

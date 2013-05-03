@@ -15,37 +15,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSThread.h>
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSLock.h>
+#import <Foundation/NSMutableArray.h>
 #import <Foundation/NSDebug.h>
 
-#import "NSAtomicList.h"
 #import <Foundation/NSRaise.h>
-#import <string.h>
-
+#include <string.h>
 
 @implementation NSOperationQueue
 
-static id PopOperation( NSAtomicListRef *listPtr )
-{
-	return [(id)NSAtomicListPop( listPtr ) autorelease];
-}
-	
-static void ClearList( NSAtomicListRef *listPtr )
-{
-	for (int i = 0; i < NSOperationQueuePriority_Count; i++) {
-		while (PopOperation( &listPtr[i] )) ;	
-}
-}
-
-
 -init {
+	if ((self = [super init])) {
 		workAvailable = [[NSCondition alloc] init];
 		suspendedCondition = [[NSCondition alloc] init];
-   allWorkDone = [[NSCondition alloc] init];
+		allWorkDone = [[NSCondition alloc] init];
 		isSuspended = NO;
-		
+		_operations = [[NSMutableArray alloc] init];
 		_thread = [[NSThread alloc] initWithTarget: self selector: @selector( _workThread ) object: nil];
 		[_thread start];
-
+	}
 	return self;
 }
 
@@ -54,7 +41,7 @@ static void ClearList( NSAtomicListRef *listPtr )
 	if (isSuspended) {
 		isSuspended = NO;
 		[suspendedCondition broadcast];
-}
+	}
 	[suspendedCondition unlock];
 }
 
@@ -70,38 +57,43 @@ static void ClearList( NSAtomicListRef *listPtr )
 	[_thread cancel];
 	[self resume];
 	[workAvailable broadcast];
-	}
+}
 
 
 - (void)dealloc
 {
 	[self stop];
 	
+	[_operations release];
 	[_thread release];
 	[workAvailable release];
 	[suspendedCondition release];
-	
-	ClearList((NSAtomicListRef *) queues );
 	
 	[super dealloc];
 }
 
 - (void)addOperation: (NSOperation *)op
 {
-	unsigned priority = 1;
-	if ([op queuePriority] < NSOperationQueuePriorityNormal) priority = 2;
-	else if ([op queuePriority] > NSOperationQueuePriorityNormal) priority = 0;
-	
-	NSAtomicListInsert( (NSAtomicListRef *)(&queues[priority]), [op retain] );
-	[workAvailable signal];
+	@synchronized(self) {
+		[_operations addObject: op];
+		[_operations sortUsingSelector: @selector(comparePriority:)];
+		[workAvailable signal];
+	}
 }
 
 - (void)addOperations:(NSArray *)ops waitUntilFinished:(BOOL)wait {
-	NSUnimplementedMethod();
+	@synchronized(self) {
+		[_operations addObjectsFromArray: ops];
+		[_operations sortUsingSelector: @selector(comparePriority:)];
+		[workAvailable signal];
 	}
+	if (wait) {
+		[self waitUntilAllOperationsAreFinished];
+	}
+}
 
 - (void)cancelAllOperations {
-	NSUnimplementedMethod();
+	[[self operations] makeObjectsPerformSelector:@selector(cancel)];
 }
 
 - (NSInteger)maxConcurrentOperationCount {
@@ -126,8 +118,15 @@ static void ClearList( NSAtomicListRef *listPtr )
 }
 
 - (NSArray *)operations {
-	NSUnimplementedMethod();
-	return nil;
+	NSArray* curOps = nil;
+	@synchronized(self) {
+		curOps = [_operations copy];
+	}
+	return [curOps autorelease];
+}
+
+- (NSUInteger)operationCount {
+    return [_operations count];
 }
 
 - (BOOL)isSuspended {
@@ -145,10 +144,9 @@ static void ClearList( NSAtomicListRef *listPtr )
 }
 
 -(BOOL) hasMoreWork {
-	for (int i = 0; i < NSOperationQueuePriority_Count; i++)
-     if (0 != queues[i])
-      return YES;
-     
+	@synchronized(self) {
+		return [_operations count] > 0;
+	}	
 	return NO;
 }
 
@@ -166,47 +164,17 @@ static void ClearList( NSAtomicListRef *listPtr )
    }
 }
 
-// pop an operation from the given list and run it
-// if the list is empty, steal the source list into the given list and run an operation from it
-// if both are empty, do nothing
-// returns YES if an operation was executed, NO otherwise
-// - (BOOL)_runOperationFromList: (NSAtomicListRef *)listPtr sourceList: (NSAtomicListRef *)sourceListPtr
-static BOOL RunOperationFromLists( NSAtomicListRef *listPtr, NSAtomicListRef *sourceListPtr )
-{
-	NSOperation *op = PopOperation( listPtr );
-	if( !op ) {
-		*listPtr = NSAtomicListSteal( sourceListPtr );
-		// source lists are in LIFO order, but we want to execute operations in the order they were enqueued
-		// so we reverse the list before we do anything with it
-		NSAtomicListReverse( listPtr );
-		op = PopOperation( listPtr );
-	}
-	
-	if (op) {
-		if ([op isReady])
-         [op start];
-		else
-         NSAtomicListInsert( sourceListPtr, [op retain] );
-	}
-	
-	return op != nil;
-}
-
 - (void)_workThread
 {
 	NSAutoreleasePool *outerPool = [[NSAutoreleasePool alloc] init];
 	
 	NSThread *thread = [NSThread currentThread];
 	
-	NSAtomicListRef myQueues[NSOperationQueuePriority_Count];
-	memset( myQueues, 0, sizeof( myQueues ) );
-	
-	NSAutoreleasePool *innerPool = [[NSAutoreleasePool alloc] init];
-	
 	BOOL didRun = NO;
 	while( ![thread isCancelled] )
 	{
-        
+		NSAutoreleasePool *innerPool = [[NSAutoreleasePool alloc] init];
+
 		[suspendedCondition lock];
         
 		while (isSuspended)
@@ -227,31 +195,43 @@ static BOOL RunOperationFromLists( NSAtomicListRef *listPtr, NSAtomicListRef *so
 			[workAvailable unlock];
 		}
 		
-		for (int i = 0; i < NSOperationQueuePriority_Count; i++) {
-			didRun = RunOperationFromLists( &myQueues[i], ( NSAtomicListRef *)(&queues[i] ));
-			if (didRun)
-              break;
+		id op = nil;
+		@synchronized(self) {
+			// Find an operation that can be run
+			NSUInteger index = 0;
+			NSUInteger count = [_operations count];
+			while (op == nil && index < count) {
+				op = [_operations objectAtIndex: index];
+				if ([op isReady]) {
+					[op retain]; // we're going to remove it from the queue - so make sure it doesn't die on us
+					[_operations removeObjectAtIndex: index];
+				} else {
+					// Try the another one
+					op = nil;
+				}
+				index++;
+			}	
 		}
-		
+		if (op) {
+			[op start];
+			[op release];
+		}
 		[innerPool release];
-		innerPool = [[NSAutoreleasePool alloc] init];
 	}
-	
-	[innerPool release];
-	
-	// This thread got cancelled, so insert all of its operations back into the main queue.
-	// The thread pool could have been reduced and then other threads should do this thread's work.
-	for (int i = 0; i < NSOperationQueuePriority_Count; i++) {
-		id op = 0;
-		while ((op = (id)NSAtomicListPop( &myQueues[i] ))) {
-			NSAtomicListInsert((NSAtomicListRef *)( &queues[i]), op );
-		}
-	}
-	
-	ClearList( myQueues );
-	
+
 	[outerPool release];
 }
 
++ (id)currentQueue
+{
+	NSUnimplementedMethod();
+	return nil;
+}
+
++ (id)mainQueue
+{
+	NSUnimplementedMethod();
+	return nil;
+}
 
 @end

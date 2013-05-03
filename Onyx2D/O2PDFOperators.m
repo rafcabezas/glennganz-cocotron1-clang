@@ -578,6 +578,12 @@ void O2PDF_render_gs(O2PDFScanner *scanner,void *info) {
    }
    else if([graphicsState getDictionaryForKey:"SMask" value:&dictionary]){
     O2PDFFix(__FILE__,__LINE__,@"SMask not implemented");
+#if 0   
+    O2ImageRef mask=[O2Image imageWithPDFObject:dictionary];
+    
+    if(mask!=NULL)
+     O2ContextClipToMask(context,O2RectMake(0,0,1,1),mask);
+#endif
    }
 
    if([graphicsState getNumberForKey:"CA" value:&number]){
@@ -670,8 +676,10 @@ void O2PDF_render_ID(O2PDFScanner *scanner,void *info) {
    if(![dictionary getBooleanForKey:"IM" value:&imageMask])
     if(![dictionary getBooleanForKey:"ImageMask" value:&imageMask]){
     }
-
-   if(![dictionary getObjectForKey:"Intent" value:&intent])
+#if 0
+   if(![dictionary getObjectForKey:"Intent" value:&intent]){
+   }
+#endif
 
    if(![dictionary getBooleanForKey:"I" value:&interpolate])
     if(![dictionary getBooleanForKey:"Interpolate" value:&interpolate]){
@@ -1129,7 +1137,7 @@ void O2PDF_render_Tj(O2PDFScanner *scanner,void *info) {
     return;
    }
    
-   O2ContextShowText(context,O2PDFStringGetBytePtr(string),O2PDFStringGetLength(string));
+   O2ContextShowText(context,(const char *)O2PDFStringGetBytePtr(string),O2PDFStringGetLength(string));
 }
 
 // Show text, alowing individual glyph positioning
@@ -1161,7 +1169,7 @@ void O2PDF_render_TJ(O2PDFScanner *scanner,void *info) {
      O2ContextSetTextMatrix(context,Tm);
     }
     else if([object checkForType:kO2PDFObjectTypeString value:&string]){
-     O2ContextShowText(context,O2PDFStringGetBytePtr(string),O2PDFStringGetLength(string));
+     O2ContextShowText(context,(const char *)O2PDFStringGetBytePtr(string),O2PDFStringGetLength(string));
     }
     else {
      O2PDFFix(__FILE__,__LINE__,@"Invalid object in TJ array");
@@ -1344,7 +1352,7 @@ void O2PDF_render_dquote(O2PDFScanner *scanner,void *info) {
    O2ContextSetWordSpacing(context,wspacing);
    O2ContextSetCharacterSpacing(context,cspacing);
    O2PDF_render_T_star(scanner,info);
-   O2ContextShowText(context,O2PDFStringGetBytePtr(string),O2PDFStringGetLength(string));
+   O2ContextShowText(context,(const char *)O2PDFStringGetBytePtr(string),O2PDFStringGetLength(string));
 }
 
 void O2PDF_render_populateOperatorTable(O2PDFOperatorTable *table) {

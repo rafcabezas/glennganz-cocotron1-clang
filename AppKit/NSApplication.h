@@ -88,7 +88,7 @@ typedef enum {
    NSDockTile     *_dockTile;
 
    NSMutableArray *_modalStack;
-   NSMutableArray *_orderedDocuments; // get rid of
+   void *_lock; 
    NSMutableArray *_orderedWindows; // get rid of
    NSTimer *_attentionTimer;
 }

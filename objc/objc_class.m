@@ -226,6 +226,9 @@ int class_getVersion(Class class) {
 
 Method class_getClassMethod(Class class, SEL selector)
 {
+	if (class == Nil) {
+     return NULL;   
+    }
 	return class_getInstanceMethod(class->isa, selector);
 }
 
@@ -276,6 +279,8 @@ size_t class_getInstanceSize(Class class) {
 
 Ivar class_getInstanceVariable(Class class,const char *variableName) {
    for(;;class=class->super_class){
+    if(class==Nil)
+           break;
     struct objc_ivar_list *ivarList=class->ivars;
     int i;
 
@@ -431,8 +436,27 @@ const char *class_getWeakIvarLayout(Class cls) {
 }
 
 Ivar *class_copyIvarList(Class cls,unsigned int *countp) {
-   // UNIMPLEMENTED
-   return NULL;
+    Ivar *result = NULL;
+    struct objc_ivar_list *ivars=cls->ivars;
+    
+    if(countp != NULL) {
+        if (ivars != NULL) {
+            *countp = ivars->ivar_count;
+        }
+        else {
+            *countp = 0;
+        }
+    }
+    
+    if (ivars != NULL) {
+        result=malloc(sizeof(Ivar)*ivars->ivar_count);
+        
+        for(int i=0;i<ivars->ivar_count;i++){
+            result[i] = &ivars->ivar_list[i];
+        }
+    }
+    
+    return result;
 }
 
 Method *class_copyMethodList(Class cls,unsigned int *countp) {
@@ -535,7 +559,7 @@ BOOL class_addIvar(Class cls,const char *name,size_t size,uint8_t alignment,cons
    if(objc_lookUpClass(cls->name) != Nil) {
      return NO;
    }
-   for(class=cls;(class->isa->isa==class);class=class->super_class){
+   for(class=cls;(class!=Nil);class=class->super_class){
      ivars=class->ivars;
      if(ivars){
        for(i=0;i<ivars->ivar_count;i++){
@@ -644,6 +668,7 @@ BOOL class_addProtocol(Class cls,Protocol *protocol) {
 	struct objc_protocol_list *protocolList = malloc(sizeof(struct objc_protocol_list));
 	protocolList->next = 0;
 	protocolList->list[0] = protocol;
+        protocolList->count = 1;
 	struct objc_protocol_list *protoList = cls->protocols;
 	struct objc_protocol_list *lastList = protoList;
 	while((protoList=protoList->next) != NULL) {
@@ -655,7 +680,13 @@ BOOL class_addProtocol(Class cls,Protocol *protocol) {
 
 BOOL class_conformsToProtocol(Class class,Protocol *protocol) {
 
+   if (class == Nil) {
+        return NO;
+   }
    for(;;class=class->super_class){
+       if(class==Nil)
+           break;
+
     struct objc_protocol_list *protoList=class->protocols;
 
     for(;protoList!=NULL;protoList=protoList->next){
@@ -777,7 +808,7 @@ void OBJCRegisterClass(Class class) {
 
    if(class->super_class==NULL){
      // Root class
-    class->isa->isa=class;
+    class->isa->isa=class->isa;
     class->isa->super_class=class;
     class->info|=CLASS_INFO_LINKED;
    }
