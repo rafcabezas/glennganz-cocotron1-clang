@@ -33,6 +33,13 @@ CCCryptorStatus CCCryptorCreate(CCOperation operation,CCAlgorithm algorithm,CCOp
        self->cipher=EVP_aes_256_cbc();
      }
      break;
+           
+       case kCCAlgorithmDES:
+           if (options & kCCOptionECBMode)
+               self->cipher = EVP_des_ecb();
+           else
+               self->cipher = EVP_des_cbc();
+           break;
    }
    
    if(self->cipher==NULL){

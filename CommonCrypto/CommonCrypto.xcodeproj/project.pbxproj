@@ -259,6 +259,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = Info.plist;
+				LIBRARY_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/lib";
 				OTHER_CFLAGS = (
 					"-DCOMMONCRYPTO_INSIDE_BUILD=1",
 					"$(OTHER_CFLAGS)",
@@ -271,6 +272,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = CommonCrypto;
+				USER_HEADER_SEARCH_PATHS = "/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include";
 			};
 			name = Release;
 		};

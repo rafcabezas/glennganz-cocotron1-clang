@@ -6,10 +6,17 @@
 enum {
 	kCCKeySizeAES128	= 16,
 	kCCKeySizeAES256	= 32,
+    kCCKeySizeDES       = 8,
+
 };
 
 enum {
-	kCCBlockSizeAES128	= 16,
+    kCCBlockSizeAES128        = 16,
+    kCCBlockSizeDES           = 8,
+    kCCBlockSize3DES          = 8,
+    kCCBlockSizeCAST          = 8,
+    kCCBlockSizeRC2           = 8,
+    kCCBlockSizeBlowfish      = 8,
 };
 
 enum {
@@ -31,6 +38,7 @@ typedef uint32_t CCOperation;
 
 enum {
 	kCCAlgorithmAES128 = 0,
+    kCCAlgorithmDES
 };
 typedef uint32_t CCAlgorithm;
 
