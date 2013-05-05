@@ -53,6 +53,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSUInteger                 i,length=[astring length];
    unichar                   *buffer=NSZoneMalloc(NULL,length*sizeof(unichar));
    
+    
+   frame.origin.x += 3;
+    
    for(i=0;i<length;i++)
     buffer[i]=_echosBullets?0x2022:' '; // unicode bullet
     
