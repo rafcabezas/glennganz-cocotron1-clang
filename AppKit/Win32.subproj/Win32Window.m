@@ -1551,54 +1551,58 @@ const int kWindowMaxDim = 10000;
 	NSLog(@"windowProcedure: %u wParam: %d, lParam: %ld", message, wParam, lParam);
 #endif
 	
-   if([_delegate platformWindowIgnoreModalMessages:self]){
-// these messages are sent directly, so we can't drop them in NSApplication's modal run loop
-    switch(message){
-     case WM_SETCURSOR:
-     case WM_MOUSEACTIVATE:
-			
+    if ([_delegate platformWindowWindowProc:message wParam:wParam lParam:lParam]) {
+        
+        if([_delegate platformWindowIgnoreModalMessages:self]){
+       
+           // these messages are sent directly, so we can't drop them in NSApplication's modal run loop
+           switch(message){
+               case WM_SETCURSOR:
+               case WM_MOUSEACTIVATE:
+                   
 #if WM_MSG_DEBUGGING
-			NSLog(@"bailing on WM_SETCURSOR or WM_MOUSEACTIVATE");
+                   NSLog(@"bailing on WM_SETCURSOR or WM_MOUSEACTIVATE");
 #endif
-			return 0;
-
-     case WM_NCHITTEST:
+                   return 0;
+                   
+               case WM_NCHITTEST:
 #if WM_MSG_DEBUGGING
-			NSLog(@"bailing on WM_NCHITTEST");
+                   NSLog(@"bailing on WM_NCHITTEST");
 #endif
-			return HTCLIENT;
-    }
-   }
-
-   switch(message){
-
-	case WM_SETFOCUS:			return [self WM_SETFOCUS_wParam:wParam lParam:lParam];
-    case WM_ACTIVATE:			return [self WM_ACTIVATE_wParam:wParam lParam:lParam];
-    case WM_MOUSEACTIVATE:		return [self WM_MOUSEACTIVATE_wParam:wParam lParam:lParam];
-    case WM_WINDOWPOSCHANGED:	return [self WM_WINDOWPOSCHANGED_wParam: wParam lParam: lParam];
-   // case WM_SIZE: // these are now covered by WM_WINDOWPOSCHANGED
-   // case WM_MOVE:
-    case WM_PAINT:				return [self WM_PAINT_wParam:wParam lParam:lParam];
-    case WM_CLOSE:				return [self WM_CLOSE_wParam:wParam lParam:lParam];
-    case WM_SETCURSOR:			return [self WM_SETCURSOR_wParam:wParam lParam:lParam];
-    case WM_SIZING:				return [self WM_SIZING_wParam:wParam lParam:lParam];
-    case WM_GETMINMAXINFO:		return [self WM_GETMINMAXINFO_wParam:wParam lParam:lParam];
-    case WM_ENTERSIZEMOVE:		return [self WM_ENTERSIZEMOVE_wParam:wParam lParam:lParam];
-    case WM_EXITSIZEMOVE:		return [self WM_EXITSIZEMOVE_wParam:wParam lParam:lParam];
-    case WM_SYSCOMMAND:    return [self WM_SYSCOMMAND_wParam:wParam lParam:lParam];
-	case WM_SYSCOLORCHANGE:		return [self WM_SYSCOLORCHANGE_wParam: wParam lParam: lParam];
-	case WM_ERASEBKGND:			return [self WM_ERASEBKGND_wParam: wParam lParam: lParam];
-
+                   return HTCLIENT;
+           }
+       }
+       
+       switch(message){
+               
+           case WM_SETFOCUS:			return [self WM_SETFOCUS_wParam:wParam lParam:lParam];
+           case WM_ACTIVATE:			return [self WM_ACTIVATE_wParam:wParam lParam:lParam];
+           case WM_MOUSEACTIVATE:		return [self WM_MOUSEACTIVATE_wParam:wParam lParam:lParam];
+           case WM_WINDOWPOSCHANGED:	return [self WM_WINDOWPOSCHANGED_wParam: wParam lParam: lParam];
+               // case WM_SIZE: // these are now covered by WM_WINDOWPOSCHANGED
+               // case WM_MOVE:
+           case WM_PAINT:				return [self WM_PAINT_wParam:wParam lParam:lParam];
+           case WM_CLOSE:				return [self WM_CLOSE_wParam:wParam lParam:lParam];
+           case WM_SETCURSOR:			return [self WM_SETCURSOR_wParam:wParam lParam:lParam];
+           case WM_SIZING:				return [self WM_SIZING_wParam:wParam lParam:lParam];
+           case WM_GETMINMAXINFO:		return [self WM_GETMINMAXINFO_wParam:wParam lParam:lParam];
+           case WM_ENTERSIZEMOVE:		return [self WM_ENTERSIZEMOVE_wParam:wParam lParam:lParam];
+           case WM_EXITSIZEMOVE:		return [self WM_EXITSIZEMOVE_wParam:wParam lParam:lParam];
+           case WM_SYSCOMMAND:    return [self WM_SYSCOMMAND_wParam:wParam lParam:lParam];
+           case WM_SYSCOLORCHANGE:		return [self WM_SYSCOLORCHANGE_wParam: wParam lParam: lParam];
+           case WM_ERASEBKGND:			return [self WM_ERASEBKGND_wParam: wParam lParam: lParam];
+               
 #if 0
-// doesn't seem to work
-    case WM_PALETTECHANGED:
-     [self invalidateContextsWithNewSize:_backingSize forceRebuild:YES];
-     [_delegate platformWindow:self needsDisplayInRect:NSZeroRect];
-     break;
+               // doesn't seem to work
+           case WM_PALETTECHANGED:
+               [self invalidateContextsWithNewSize:_backingSize forceRebuild:YES];
+               [_delegate platformWindow:self needsDisplayInRect:NSZeroRect];
+               break;
 #endif
-
-    default:
-     break;
+               
+           default:
+               break;
+       }
    }
 	
 #if WM_MSG_DEBUGGING

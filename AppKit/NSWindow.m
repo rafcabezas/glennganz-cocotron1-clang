@@ -3071,7 +3071,12 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return cursorIsSet;
 }
 
--(NSUndoManager *)undoManager {    
+//Override for custom window message processing
+-(int)platformWindowWindowProc:(unsigned int)message wParam:(unsigned int)wParam lParam:(long)lParam {
+    return 1; //1 means message not handled so super handles.
+}
+
+-(NSUndoManager *)undoManager {
     if ([_delegate respondsToSelector:@selector(windowWillReturnUndoManager:)])
         return [_delegate windowWillReturnUndoManager:self];
     
