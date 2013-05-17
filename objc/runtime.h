@@ -13,7 +13,7 @@ typedef enum {
     OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
     OBJC_ASSOCIATION_RETAIN = 01401,
     OBJC_ASSOCIATION_COPY = 01403
-} objc_AssociationPolicy;
+};
 typedef uintptr_t objc_AssociationPolicy;
 
 OBJC_EXPORT id           objc_lookUpClass(const char *name);
