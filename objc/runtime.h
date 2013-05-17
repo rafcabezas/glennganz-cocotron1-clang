@@ -7,6 +7,15 @@ typedef struct objc_ivar     *Ivar;
 typedef struct objc_category *Category;
 typedef struct objc_property *objc_property_t;
 
+typedef enum {
+    OBJC_ASSOCIATION_ASSIGN = 0,
+    OBJC_ASSOCIATION_RETAIN_NONATOMIC = 1,
+    OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
+    OBJC_ASSOCIATION_RETAIN = 01401,
+    OBJC_ASSOCIATION_COPY = 01403
+} objc_AssociationPolicy;
+typedef uintptr_t objc_AssociationPolicy;
+
 OBJC_EXPORT id           objc_lookUpClass(const char *name);
 OBJC_EXPORT id           objc_getClass(const char *name);
 OBJC_EXPORT int          objc_getClassList(Class *list,int listCapacity);
@@ -21,6 +30,9 @@ OBJC_EXPORT void         objc_setFutureClass(Class cls,const char *name);
 OBJC_EXPORT Class        objc_allocateClassPair(Class parent,const char *name,size_t extraBytes);
 OBJC_EXPORT void         objc_setForwardHandler(void *handler, void *handler_stret);
 OBJC_EXPORT const char **objc_copyImageNames(unsigned *count); // free the ptr but not the strings
+OBJC_EXPORT void         object_remove_assocations(id object);
+OBJC_EXPORT void         objc_setAssociatedObject(id object, const void *key, id value, objc_AssociationPolicy policy);
+OBJC_EXPORT id           objc_getAssociatedObject(id object, const void *key);
 
 OBJC_EXPORT const char      *class_getName(Class cls);
 OBJC_EXPORT BOOL             class_isMetaClass(Class cls);

@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		053760831746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		053760841746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		053760851746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		053760861746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		053760871746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		053760881746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		053760891746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		0537608A1746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
+		0537608B1746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
 		0DE1C159151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DE1C15A151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; };
 		0DE1C15B151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; };
@@ -6803,6 +6812,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		053760821746C013000E6EAA /* objc_associated.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = objc_associated.m; sourceTree = "<group>"; };
 		0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSRecursiveLock_posix.h; path = platform_posix/NSRecursiveLock_posix.h; sourceTree = "<group>"; };
 		0DE1C158151665AB003781E1 /* NSRecursiveLock_posix.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSRecursiveLock_posix.m; path = platform_posix/NSRecursiveLock_posix.m; sourceTree = "<group>"; };
 		151B5CC3105EA25E009092D5 /* objc_msg_sendv-Disabled.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "objc_msg_sendv-Disabled.m"; sourceTree = "<group>"; };
@@ -8394,6 +8404,7 @@
 				FEBF545A0F93AE8A005DC684 /* objc_property.m */,
 				FEBF53670F926025005DC684 /* objc_protocol.h */,
 				FEBF535B0F925FA3005DC684 /* objc_protocol.m */,
+				053760821746C013000E6EAA /* objc_associated.m */,
 				6E28053509747C8900EC542B /* objc_sel.h */,
 				6E28053609747C8900EC542B /* objc_sel.m */,
 				6E28052709747C8900EC542B /* ObjCArray.h */,
@@ -13048,6 +13059,7 @@
 				FE4C07591434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C167151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663E215590EAF00A162B8 /* libmain.m in Sources */,
+				0537608A1746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -13422,6 +13434,7 @@
 				FE4C07571434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C166151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663E115590EAF00A162B8 /* libmain.m in Sources */,
+				053760891746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -13797,6 +13810,7 @@
 				FE4C074F1434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C162151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663E415590EC600A162B8 /* libmain.m in Sources */,
+				053760851746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -14173,6 +14187,7 @@
 				FE4C074D1434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C161151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663E015590EAF00A162B8 /* libmain.m in Sources */,
+				053760841746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -14554,6 +14569,7 @@
 				FEB3F2C11404A92400059C8F /* NSSpellEngine.m in Sources */,
 				FEFAA5421429098A00CEE177 /* NSScriptWhoseTests.m in Sources */,
 				FE4C074B1434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
+				053760831746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -14930,6 +14946,7 @@
 				FE4C075B1434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C168151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663DE15590E9400A162B8 /* libmain.m in Sources */,
+				0537608B1746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -15309,6 +15326,7 @@
 				FE4C07551434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C165151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663E815590FBE00A162B8 /* libmain.m in Sources */,
+				053760881746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -15689,6 +15707,7 @@
 				FE4C07511434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C163151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663DC15590E7B00A162B8 /* libmain.m in Sources */,
+				053760861746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -16069,6 +16088,7 @@
 				FE4C07531434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				0DE1C164151665AB003781E1 /* NSRecursiveLock_posix.m in Sources */,
 				C64663E715590FBE00A162B8 /* libmain.m in Sources */,
+				053760871746C013000E6EAA /* objc_associated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
