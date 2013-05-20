@@ -9,11 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSObject.h>
 
 @interface NSAutoreleasePool : NSObject {
-   NSAutoreleasePool *_parent;
+   __unsafe_unretained NSAutoreleasePool *_parent;
    NSUInteger         _pageCount;
-   id               **_pages;
+   __unsafe_unretained id               **_pages;
    NSUInteger         _nextSlot;
-   NSAutoreleasePool *_childPool;
+   __unsafe_unretained NSAutoreleasePool *_childPool;
 }
 
 +(void)addObject:object;

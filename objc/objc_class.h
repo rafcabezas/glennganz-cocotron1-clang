@@ -21,7 +21,8 @@ enum {
    CLASS_INFO_POSING=0x008,
    CLASS_INFO_LINKED=0x100,
    CLASS_HAS_CXX_STRUCTORS=0x2000,
-   CLASS_NO_METHOD_ARRAY=0x4000
+   CLASS_NO_METHOD_ARRAY=0x4000,
+   objc_class_flag_fast_arc=0x8000,
 };
 
 typedef struct OBJCMethodDescriptionList {

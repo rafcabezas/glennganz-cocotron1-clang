@@ -10,6 +10,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <objc/objc.h>
 #import <stdint.h>
 
+#ifndef __has_feature
+#define __has_feature(x) 0 // Compatibility with non-clang compilers.
+#endif
+
+#if !__has_feature(objc_arc)
+#define __bridge
+#define __bridge_transfer
+#define __unsafe_unretained
+#endif
+
 enum {
    _C_ID='@',
    _C_CHR='c',
@@ -80,7 +90,7 @@ struct objc_method_list {
 struct objc_protocol_list {
     struct objc_protocol_list *next;
     int                        count;
-    Protocol                  *list[1];
+    __unsafe_unretained Protocol                  *list[1];
 };
 
 struct objc_category {

@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'objc2' target in the 'objc2' project
+//
+
+#ifdef __OBJC__
+    //#import <Cocoa/Cocoa.h>
+#endif

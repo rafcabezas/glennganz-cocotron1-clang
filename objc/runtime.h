@@ -13,7 +13,7 @@ typedef enum {
     OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
     OBJC_ASSOCIATION_RETAIN = 01401,
     OBJC_ASSOCIATION_COPY = 01403
-};
+} objc_AssociationPolicy_tag;
 typedef uintptr_t objc_AssociationPolicy;
 
 OBJC_EXPORT id           objc_lookUpClass(const char *name);
@@ -22,8 +22,8 @@ OBJC_EXPORT int          objc_getClassList(Class *list,int listCapacity);
 OBJC_EXPORT Class        objc_getFutureClass(const char *name);
 OBJC_EXPORT id           objc_getMetaClass(const char *name);
 OBJC_EXPORT id           objc_getRequiredClass(const char *name);
-OBJC_EXPORT Protocol    *objc_getProtocol(const char *name);
-OBJC_EXPORT Protocol   **objc_copyProtocolList(unsigned int *countp);
+OBJC_EXPORT __unsafe_unretained Protocol    *objc_getProtocol(const char *name);
+OBJC_EXPORT __unsafe_unretained Protocol   **objc_copyProtocolList(unsigned int *countp);
 OBJC_EXPORT void         objc_addClass(Class cls);
 OBJC_EXPORT void         objc_registerClassPair(Class cls);
 OBJC_EXPORT void         objc_setFutureClass(Class cls,const char *name);
@@ -51,7 +51,7 @@ OBJC_EXPORT const char      *class_getWeakIvarLayout(Class cls);
 OBJC_EXPORT Ivar            *class_copyIvarList(Class cls,unsigned int *countp);
 OBJC_EXPORT Method          *class_copyMethodList(Class cls,unsigned int *countp);
 OBJC_EXPORT objc_property_t *class_copyPropertyList(Class cls,unsigned int *countp);
-OBJC_EXPORT Protocol       **class_copyProtocolList(Class cls,unsigned int *countp);
+OBJC_EXPORT __unsafe_unretained Protocol       **class_copyProtocolList(Class cls,unsigned int *countp);
 
 OBJC_EXPORT Class            class_setSuperclass(Class cls,Class parent);
 OBJC_EXPORT void             class_setVersion(Class cls,int version);
@@ -70,7 +70,7 @@ OBJC_EXPORT const char      *class_getImageName(Class cls);
 OBJC_EXPORT const char                     *protocol_getName(Protocol *protocol);
 OBJC_EXPORT objc_property_t                 protocol_getProperty(Protocol *protocol,const char *name,BOOL isRequired,BOOL isInstance);
 OBJC_EXPORT objc_property_t                *protocol_copyPropertyList(Protocol *protocol,unsigned int *countp);
-OBJC_EXPORT Protocol                      **protocol_copyProtocolList(Protocol *protocol,unsigned int *countp);
+OBJC_EXPORT __unsafe_unretained Protocol                      **protocol_copyProtocolList(Protocol *protocol,unsigned int *countp);
 OBJC_EXPORT struct objc_method_description *protocol_copyMethodDescriptionList(Protocol *protocol,BOOL isRequired,BOOL isInstance,unsigned int *countp);
 OBJC_EXPORT struct objc_method_description  protocol_getMethodDescription(Protocol *protocol,SEL selector,BOOL isRequired,BOOL isInstance);
 OBJC_EXPORT BOOL                            protocol_conformsToProtocol(Protocol *protocol,Protocol *other);

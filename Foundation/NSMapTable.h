@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @class NSArray,NSMapTable;
 
 typedef struct {
-   NSMapTable        *table;
+  __unsafe_unretained NSMapTable        *table;
    NSInteger                i;
    struct _NSMapNode *j;
 } NSMapEnumerator;

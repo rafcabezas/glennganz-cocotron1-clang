@@ -22,10 +22,10 @@ FOUNDATION_EXPORT NSString * const NSParseErrorException;
 FOUNDATION_EXPORT NSString * const NSInconsistentArchiveException;
 
 @interface NSException:NSObject <NSCoding,NSCopying> {
-    NSString		*_name;
-    NSString		*_reason;
-    NSDictionary	*_userInfo;
-    NSArray         *_callStack;
+    __unsafe_unretained NSString		*_name;
+    __unsafe_unretained NSString		*_reason;
+    __unsafe_unretained NSDictionary	*_userInfo;
+    __unsafe_unretained NSArray         *_callStack;
 }
 
 +(void)raise:(NSString *)name format:(NSString *)format,...;
@@ -53,7 +53,7 @@ FOUNDATION_EXPORT void NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler 
 typedef struct NSExceptionFrame {
    jmp_buf                  state;
    struct NSExceptionFrame *parent;
-   NSException             *exception;
+   __unsafe_unretained NSException             *exception;
 } NSExceptionFrame;
 
 FOUNDATION_EXPORT void __NSPushExceptionFrame(NSExceptionFrame *frame);

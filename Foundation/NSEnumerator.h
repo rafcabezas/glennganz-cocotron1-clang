@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 typedef struct
 	{
 		unsigned long state;
-		id *itemsPtr;
+		__unsafe_unretained id *itemsPtr;
 		unsigned long *mutationsPtr;
 		unsigned long extra[5];
 	} NSFastEnumerationState;
