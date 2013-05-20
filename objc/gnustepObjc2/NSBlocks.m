@@ -4,6 +4,7 @@
 #import "blocks_runtime.h"
 //#import "dtable.h"
 #include <assert.h>
+#import "../objc_class.h"
 
 struct objc_class _NSConcreteGlobalBlock;
 struct objc_class _NSConcreteStackBlock;

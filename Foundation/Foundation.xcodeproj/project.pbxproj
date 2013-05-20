@@ -21,7 +21,7 @@
 		05A5FC2A1747F166002F3D5E /* gc_ops.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC291747F166002F3D5E /* gc_ops.h */; };
 		05A5FC2C1747F16C002F3D5E /* gc_none.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC2B1747F16C002F3D5E /* gc_none.m */; };
 		05A5FC2E1747F1A4002F3D5E /* arc.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC2D1747F1A4002F3D5E /* arc.m */; };
-		05A5FC301747F1B6002F3D5E /* objc-arc.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC2F1747F1B6002F3D5E /* objc-arc.h */; };
+		05A5FC301747F1B6002F3D5E /* objc-arc.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC2F1747F1B6002F3D5E /* objc-arc.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		05A5FC321747F357002F3D5E /* lock.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC311747F357002F3D5E /* lock.h */; };
 		05A5FC341747F3DD002F3D5E /* visibility.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC331747F3DD002F3D5E /* visibility.h */; };
 		05A5FC4317488C6D002F3D5E /* mman.c in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC4117488C6D002F3D5E /* mman.c */; };
@@ -33,8 +33,9 @@
 		05B010351749968D00A942DD /* Block_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 05B0102F1749968D00A942DD /* Block_private.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		05B010361749968D00A942DD /* block_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 05B010301749968D00A942DD /* block_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		05B010371749968D00A942DD /* config.inc in Sources */ = {isa = PBXBuildFile; fileRef = 05B010311749968D00A942DD /* config.inc */; };
-		05B010381749968D00A942DD /* data.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B010321749968D00A942DD /* data.c */; };
 		05B010391749968D00A942DD /* block_runtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B010331749968D00A942DD /* block_runtime.c */; };
+		05B0106D1749C24A00A942DD /* NSNumber_double_const.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27C0021090CC0500C44FD7 /* NSNumber_double_const.m */; };
+		05B01070174A650F00A942DD /* data.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B0106F174A650F00A942DD /* data.c */; };
 		0DE1C159151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DE1C15A151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; };
 		0DE1C15B151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; };
@@ -6439,6 +6440,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
+		05B010681749BF0500A942DD /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = org.cocotron.1.0.windows.i386.llvm.clang.default;
+			fileType = sourcecode.c;
+			isEditable = 1;
+			outputFiles = (
+			);
+		};
 		15D921BB105E918000171406 /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
 			compilerSpec = org.cocotron.1.0.linux.arm.gcc.default;
@@ -6854,8 +6863,8 @@
 		05B0102F1749968D00A942DD /* Block_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Block_private.h; sourceTree = "<group>"; };
 		05B010301749968D00A942DD /* block_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = block_config.h; sourceTree = "<group>"; };
 		05B010311749968D00A942DD /* config.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = config.inc; sourceTree = "<group>"; };
-		05B010321749968D00A942DD /* data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = data.c; sourceTree = "<group>"; };
 		05B010331749968D00A942DD /* block_runtime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = block_runtime.c; sourceTree = "<group>"; };
+		05B0106F174A650F00A942DD /* data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = data.c; sourceTree = "<group>"; };
 		0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSRecursiveLock_posix.h; path = platform_posix/NSRecursiveLock_posix.h; sourceTree = "<group>"; };
 		0DE1C158151665AB003781E1 /* NSRecursiveLock_posix.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSRecursiveLock_posix.m; path = platform_posix/NSRecursiveLock_posix.m; sourceTree = "<group>"; };
 		151B5CC3105EA25E009092D5 /* objc_msg_sendv-Disabled.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "objc_msg_sendv-Disabled.m"; sourceTree = "<group>"; };
@@ -7789,7 +7798,7 @@
 				05B0102F1749968D00A942DD /* Block_private.h */,
 				05B010301749968D00A942DD /* block_config.h */,
 				05B010311749968D00A942DD /* config.inc */,
-				05B010321749968D00A942DD /* data.c */,
+				05B0106F174A650F00A942DD /* data.c */,
 				05B010331749968D00A942DD /* block_runtime.c */,
 			);
 			path = AppleObjcRuntime;
@@ -10531,6 +10540,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05A5FC301747F1B6002F3D5E /* objc-arc.h in Headers */,
 				05B010361749968D00A942DD /* block_config.h in Headers */,
 				05B010351749968D00A942DD /* Block_private.h in Headers */,
 				05B010341749968D00A942DD /* Block.h in Headers */,
@@ -10868,7 +10878,6 @@
 				FE4C074A1434A0330034EE26 /* NSDecimalNumberPlaceholder.h in Headers */,
 				05A5FC251747F0B2002F3D5E /* blocks_runtime_internal.h in Headers */,
 				05A5FC2A1747F166002F3D5E /* gc_ops.h in Headers */,
-				05A5FC301747F1B6002F3D5E /* objc-arc.h in Headers */,
 				05A5FC321747F357002F3D5E /* lock.h in Headers */,
 				05A5FC341747F3DD002F3D5E /* visibility.h in Headers */,
 				05A5FC4417488C6D002F3D5E /* mman.h in Headers */,
@@ -12326,6 +12335,7 @@
 				FE01A7DB0C5D9B6900AEA51A /* Resources */,
 			);
 			buildRules = (
+				05B010681749BF0500A942DD /* PBXBuildRule */,
 			);
 			dependencies = (
 				FE01A7F30C5D9B9100AEA51A /* PBXTargetDependency */,
@@ -14670,8 +14680,9 @@
 				05A5FC4317488C6D002F3D5E /* mman.c in Sources */,
 				05A5FC4717488D86002F3D5E /* hash_table.c in Sources */,
 				05B010371749968D00A942DD /* config.inc in Sources */,
-				05B010381749968D00A942DD /* data.c in Sources */,
 				05B010391749968D00A942DD /* block_runtime.c in Sources */,
+				05B0106D1749C24A00A942DD /* NSNumber_double_const.m in Sources */,
+				05B01070174A650F00A942DD /* data.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -16552,8 +16563,9 @@
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = WINDOWS;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
-				GCC_VERSION = org.cocotron.1.0.windows.i386.gcc.4.3.1;
+				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = "$(TARGET_BUILD_DIR)/usr/include";
 				INFOPLIST_FILE = Info.plist;
 				OTHER_CFLAGS = (
@@ -16737,9 +16749,10 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = WINDOWS;
 				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
 				GCC_UNROLL_LOOPS = NO;
-				GCC_VERSION = org.cocotron.1.0.windows.i386.gcc.4.3.1;
+				GCC_VERSION = "";
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
@@ -16749,7 +16762,10 @@
 				GCC_WARN_SIGN_COMPARE = NO;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_LABEL = YES;
-				HEADER_SEARCH_PATHS = "$(TARGET_BUILD_DIR)/usr/include";
+				HEADER_SEARCH_PATHS = (
+					"$(TARGET_BUILD_DIR)/usr/include",
+					"/Developer/Cocotron/1.0/Windows/i386/llvm-clang-trunk/i386-mingw32msvc/include/",
+				);
 				INFOPLIST_FILE = Info.plist;
 				OTHER_CFLAGS = (
 					"-DPTHREAD_INSIDE_BUILD",
@@ -16760,6 +16776,7 @@
 					"-D__LITTLE_ENDIAN__",
 					"-march=i686",
 					"$(OTHER_CFLAGS)",
+					"-fobjc-abi-version=3",
 				);
 				OTHER_LDFLAGS = (
 					"-B,static",
@@ -16768,11 +16785,12 @@
 					"-shared",
 					"-lole32",
 					"-luuid",
+					"-Wl,--enable-auto-import",
 					"-lrpcrt4",
 					"-lws2_32",
 					"-Wl,--export-all-symbols",
-					"-Wl,--image-base=0xa10000",
 					"-Wl,--out-implib,$TARGET_BUILD_DIR/Foundation.framework/libFoundation.a",
+					"-Wl,--image-base=0xa10000",
 				);
 				PRODUCT_NAME = Foundation;
 				STRIP_INSTALLED_PRODUCT = NO;
