@@ -48,14 +48,23 @@ static inline OBJCHashTable *OBJCFutureClassTable(void) {
    return allFutureClasses;
 }
 
+//clang support
+static inline __objc_lookup_class(const char *className) {
+    id result;
+    
+    pthread_mutex_lock(&classTableLock);
+    result=OBJCHashValueForKey(OBJCClassTable(),className);
+    pthread_mutex_unlock(&classTableLock);
+    
+    return result;
+}
+
+id objc_lookup_class(const char *className) {
+    return __objc_lookup_class(className);
+}
+
 id objc_lookUpClass(const char *className) {
-   id result;
-   
-   pthread_mutex_lock(&classTableLock);
-   result=OBJCHashValueForKey(OBJCClassTable(),className);
-   pthread_mutex_unlock(&classTableLock);
-   
-   return result;
+    return __objc_lookup_class(className);
 }
 
 id objc_getClass(const char *name) {

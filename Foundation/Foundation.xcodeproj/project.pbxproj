@@ -16,7 +16,6 @@
 		053760891746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
 		0537608A1746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
 		0537608B1746C013000E6EAA /* objc_associated.m in Sources */ = {isa = PBXBuildFile; fileRef = 053760821746C013000E6EAA /* objc_associated.m */; };
-		05A5FC1E1747F095002F3D5E /* NSBlocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC1D1747F095002F3D5E /* NSBlocks.m */; };
 		05A5FC251747F0B2002F3D5E /* blocks_runtime_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC211747F0B2002F3D5E /* blocks_runtime_internal.h */; };
 		05A5FC2A1747F166002F3D5E /* gc_ops.h in Headers */ = {isa = PBXBuildFile; fileRef = 05A5FC291747F166002F3D5E /* gc_ops.h */; };
 		05A5FC2C1747F16C002F3D5E /* gc_none.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC2B1747F16C002F3D5E /* gc_none.m */; };
@@ -36,6 +35,7 @@
 		05B010391749968D00A942DD /* block_runtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B010331749968D00A942DD /* block_runtime.c */; };
 		05B0106D1749C24A00A942DD /* NSNumber_double_const.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27C0021090CC0500C44FD7 /* NSNumber_double_const.m */; };
 		05B01070174A650F00A942DD /* data.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B0106F174A650F00A942DD /* data.c */; };
+		05B01088174C0FFA00A942DD /* objc_msgSend.x86-32.S in Sources */ = {isa = PBXBuildFile; fileRef = 05B01083174C001F00A942DD /* objc_msgSend.x86-32.S */; };
 		0DE1C159151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0DE1C15A151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; };
 		0DE1C15B151665AB003781E1 /* NSRecursiveLock_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */; };
@@ -2208,7 +2208,6 @@
 		C6BC3CC31162305000DFC16C /* NSTimeZone_posix.h in Headers */ = {isa = PBXBuildFile; fileRef = C6BC3CB31162305000DFC16C /* NSTimeZone_posix.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		C6BC3CC41162305000DFC16C /* NSTimeZone_posix.m in Sources */ = {isa = PBXBuildFile; fileRef = C6BC3CB41162305000DFC16C /* NSTimeZone_posix.m */; };
 		C6BC3CC61162308E00DFC16C /* NSTimeZoneWindowsZones.plist in Resources */ = {isa = PBXBuildFile; fileRef = C6BC3CC51162308E00DFC16C /* NSTimeZoneWindowsZones.plist */; };
-		C80F9AE10E58BD5400ECD487 /* objc-msgsend.s in Sources */ = {isa = PBXBuildFile; fileRef = C80F9AE00E58BD5400ECD487 /* objc-msgsend.s */; };
 		C816EBEF0F0A763500EDC3EB /* NSDarwinString.h in Headers */ = {isa = PBXBuildFile; fileRef = C816EBED0F0A763500EDC3EB /* NSDarwinString.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		C816EBF00F0A763500EDC3EB /* NSDarwinString.m in Sources */ = {isa = PBXBuildFile; fileRef = C816EBEE0F0A763500EDC3EB /* NSDarwinString.m */; };
 		C816EBF10F0A763500EDC3EB /* NSDarwinString.h in Headers */ = {isa = PBXBuildFile; fileRef = C816EBED0F0A763500EDC3EB /* NSDarwinString.h */; };
@@ -2738,7 +2737,6 @@
 		FE01A7720C5D9B6900AEA51A /* NSPropertyListReader_xml1.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E0084A30A19363F00F78605 /* NSPropertyListReader_xml1.m */; };
 		FE01A7730C5D9B6900AEA51A /* NSPropertyListReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E0084CE0A19371600F78605 /* NSPropertyListReader.m */; };
 		FE01A7740C5D9B6900AEA51A /* NSKeyedUnarchiver.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EC4AAE80A34D9B200E8D6CA /* NSKeyedUnarchiver.m */; };
-		FE01A7750C5D9B6900AEA51A /* msgSendv-windows.s in Sources */ = {isa = PBXBuildFile; fileRef = 6E28055D09747CC300EC542B /* msgSendv-windows.s */; };
 		FE01A7760C5D9B6900AEA51A /* objc_msg_lookup.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E8115B20A55CB99000DE3F1 /* objc_msg_lookup.m */; settings = {COMPILER_FLAGS = "-g0"; }; };
 		FE01A7770C5D9B6900AEA51A /* NSInputStream_socket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EAD77300AAF1283004BCCC9 /* NSInputStream_socket.m */; };
 		FE01A7780C5D9B6900AEA51A /* NSOutputStream_socket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6EAD773A0AAF1293004BCCC9 /* NSOutputStream_socket.m */; };
@@ -6865,6 +6863,7 @@
 		05B010311749968D00A942DD /* config.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = config.inc; sourceTree = "<group>"; };
 		05B010331749968D00A942DD /* block_runtime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = block_runtime.c; sourceTree = "<group>"; };
 		05B0106F174A650F00A942DD /* data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = data.c; sourceTree = "<group>"; };
+		05B01083174C001F00A942DD /* objc_msgSend.x86-32.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = "objc_msgSend.x86-32.S"; sourceTree = "<group>"; };
 		0DE1C157151665AB003781E1 /* NSRecursiveLock_posix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSRecursiveLock_posix.h; path = platform_posix/NSRecursiveLock_posix.h; sourceTree = "<group>"; };
 		0DE1C158151665AB003781E1 /* NSRecursiveLock_posix.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSRecursiveLock_posix.m; path = platform_posix/NSRecursiveLock_posix.m; sourceTree = "<group>"; };
 		151B5CC3105EA25E009092D5 /* objc_msg_sendv-Disabled.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "objc_msg_sendv-Disabled.m"; sourceTree = "<group>"; };
@@ -7769,6 +7768,7 @@
 		05A5FC1B1747F08C002F3D5E /* gnustepObjc2 */ = {
 			isa = PBXGroup;
 			children = (
+				05B01083174C001F00A942DD /* objc_msgSend.x86-32.S */,
 				05A5FC331747F3DD002F3D5E /* visibility.h */,
 				05A5FC311747F357002F3D5E /* lock.h */,
 				05A5FC2F1747F1B6002F3D5E /* objc-arc.h */,
@@ -14479,7 +14479,6 @@
 				FE01A7720C5D9B6900AEA51A /* NSPropertyListReader_xml1.m in Sources */,
 				FE01A7730C5D9B6900AEA51A /* NSPropertyListReader.m in Sources */,
 				FE01A7740C5D9B6900AEA51A /* NSKeyedUnarchiver.m in Sources */,
-				FE01A7750C5D9B6900AEA51A /* msgSendv-windows.s in Sources */,
 				FE01A7760C5D9B6900AEA51A /* objc_msg_lookup.m in Sources */,
 				FE01A7770C5D9B6900AEA51A /* NSInputStream_socket.m in Sources */,
 				FE01A7780C5D9B6900AEA51A /* NSOutputStream_socket.m in Sources */,
@@ -14588,7 +14587,6 @@
 				FEC9F6AF0E2F98EA0034932A /* NSURLProtocol_http.m in Sources */,
 				FEC9F6BE0E2F9BEA0034932A /* NSURLConnectionState.m in Sources */,
 				C851D8730E40E0D3001DAB69 /* NSPropertyListWriter_xml1.m in Sources */,
-				C80F9AE10E58BD5400ECD487 /* objc-msgsend.s in Sources */,
 				C8B53BDE0E6AC7C500E4467E /* objc_debugHelpers.m in Sources */,
 				C8C970110EBDBC63009CE9BC /* NSConditionLock_win32.m in Sources */,
 				FEE7D3140ED1D2DE0032DCE0 /* NSNetServices.m in Sources */,
@@ -14674,7 +14672,6 @@
 				FEFAA5421429098A00CEE177 /* NSScriptWhoseTests.m in Sources */,
 				FE4C074B1434A0330034EE26 /* NSDecimalNumberPlaceholder.m in Sources */,
 				053760831746C013000E6EAA /* objc_associated.m in Sources */,
-				05A5FC1E1747F095002F3D5E /* NSBlocks.m in Sources */,
 				05A5FC2C1747F16C002F3D5E /* gc_none.m in Sources */,
 				05A5FC2E1747F1A4002F3D5E /* arc.m in Sources */,
 				05A5FC4317488C6D002F3D5E /* mman.c in Sources */,
@@ -14683,6 +14680,7 @@
 				05B010391749968D00A942DD /* block_runtime.c in Sources */,
 				05B0106D1749C24A00A942DD /* NSNumber_double_const.m in Sources */,
 				05B01070174A650F00A942DD /* data.c in Sources */,
+				05B01088174C0FFA00A942DD /* objc_msgSend.x86-32.S in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

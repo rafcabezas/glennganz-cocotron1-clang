@@ -16,6 +16,11 @@ typedef enum {
 } objc_AssociationPolicy_tag;
 typedef uintptr_t objc_AssociationPolicy;
 
+//clang support
+OBJC_EXPORT id           objc_lookup_class(const char *name);
+
+
+
 OBJC_EXPORT id           objc_lookUpClass(const char *name);
 OBJC_EXPORT id           objc_getClass(const char *name);
 OBJC_EXPORT int          objc_getClassList(Class *list,int listCapacity);
