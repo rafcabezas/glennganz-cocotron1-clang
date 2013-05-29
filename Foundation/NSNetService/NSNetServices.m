@@ -63,11 +63,15 @@ NSString * const NSNetServicesErrorDomain = @"NSNetServicesErrorDomain";
 -(void)_didResolveAddress {
   if([_delegate respondsToSelector:@selector(netServiceDidResolveAddress:)])
    [_delegate netServiceDidResolveAddress:self];
+    
+  [self release]; //for ARC Compat
 }
 
 -(void)_didNotResolve:(NSDictionary *) errorDict {
   if([_delegate respondsToSelector:@selector(netService:didNotResolve:)])
    [_delegate netService:self didNotResolve:errorDict];
+
+  [self release]; //for ARC Compat
 }
 
 -(void)_netServiceDidStop {
@@ -709,6 +713,7 @@ static BONJOUR_CALL void RegistrationCallback(bonjour_DNSServiceRef sdRef,bonjou
 
 -(void)setDelegate:(id) delegate {
     _delegate = delegate;
+    [self retain]; //For ARC compat
 }
 
 -(NSArray *)addresses {
