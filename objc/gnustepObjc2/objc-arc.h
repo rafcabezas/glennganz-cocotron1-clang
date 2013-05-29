@@ -107,28 +107,5 @@ unsigned long _objc_arc_autorelease_count_np(void);
  */
 unsigned long _objc_arc_autorelease_count_for_object_np(id obj);
 
-#define __setup_arc_hooks__ \
-id objc_autorelease(id obj) { return _objc_autorelease(obj); } \
-id objc_autoreleaseReturnValue(id obj) { return _objc_autoreleaseReturnValue(obj); } \
-id objc_initWeak(id *object, id value) { return _objc_initWeak(object,value); } \
-id objc_loadWeak(id* object) { return _objc_loadWeak(object); } \
-id objc_loadWeakRetained(id* obj) { return _objc_loadWeakRetained(obj); } \
-id objc_retain(id obj) { return _objc_retain(obj); } \
-id objc_retainAutorelease(id obj) { return _objc_retainAutorelease(obj); } \
-id objc_retainAutoreleaseReturnValue(id obj) { return _objc_retainAutoreleaseReturnValue(obj); } \
-id objc_retainAutoreleasedReturnValue(id obj) { return _objc_retainAutoreleasedReturnValue(obj); } \
-id objc_retainBlock(id b) { return _objc_retainBlock(b); } \
-id objc_storeStrong(id *addr, id value) { return _objc_storeStrong(addr,value); } \
-id objc_storeWeak(id *addr, id obj) { return _objc_storeWeak(addr,obj); } \
-void *objc_autoreleasePoolPush(void) { return _objc_autoreleasePoolPush(); } \
-void objc_autoreleasePoolPop(void *pool) { _objc_autoreleasePoolPop(pool); } \
-void objc_copyWeak(id *dest, id *src) { _objc_copyWeak(dest,src); } \
-void objc_destroyWeak(id* addr) { _objc_destroyWeak(addr); } \
-void objc_moveWeak(id *dest, id *src) { _objc_moveWeak(dest,src); } \
-void objc_release(id obj) { _objc_release(obj); } \
-void objc_delete_weak_refs(id obj) { _objc_delete_weak_refs(obj); } \
-unsigned long objc_arc_autorelease_count_np(void) { return _objc_arc_autorelease_count_np(); } \
-unsigned long objc_arc_autorelease_count_for_object_np(id obj) { return _objc_arc_autorelease_count_for_object_np(obj); }
-
 #endif // __OBJC_ARC_INCLUDED__
 
