@@ -5,7 +5,9 @@
 #import "objc-arc.h"
 
 //#define ARCLOG(x)  fprintf(stderr,x)
-#define ARCLOG(x)  
+#define ARCLOG(x)
+#define WEAKLOG(x)  fprintf(stderr,x)
+
 
 #define objc_class_flag_fast_arc 0x8000
 #import "blocks_runtime.h"
@@ -17,28 +19,32 @@ pthread_key_t ARCThreadKey;
 #define __setup_arc_hooks__ \
 id objc_autorelease(id obj) { return _objc_autorelease(obj); } \
 id objc_autoreleaseReturnValue(id obj) { return _objc_autoreleaseReturnValue(obj); } \
-id objc_initWeak(id *object, id value) { return _objc_initWeak(object,value); } \
-id objc_loadWeak(id* object) { return _objc_loadWeak(object); } \
-id objc_loadWeakRetained(id* obj) { return _objc_loadWeakRetained(obj); } \
 id objc_retain(id obj) { return _objc_retain(obj); } \
 id objc_retainAutorelease(id obj) { return _objc_retainAutorelease(obj); } \
 id objc_retainAutoreleaseReturnValue(id obj) { return _objc_retainAutoreleaseReturnValue(obj); } \
 id objc_retainAutoreleasedReturnValue(id obj) { return _objc_retainAutoreleasedReturnValue(obj); } \
 id objc_retainBlock(id b) { return _objc_retainBlock(b); } \
 id objc_storeStrong(id *addr, id value) { return _objc_storeStrong(addr,value); } \
-id objc_storeWeak(id *addr, id obj) { return _objc_storeWeak(addr,obj); } \
 void *objc_autoreleasePoolPush(void) { return _objc_autoreleasePoolPush(); } \
 void objc_autoreleasePoolPop(void *pool) { _objc_autoreleasePoolPop(pool); } \
-void objc_copyWeak(id *dest, id *src) { _objc_copyWeak(dest,src); } \
-void objc_destroyWeak(id* addr) { _objc_destroyWeak(addr); } \
-void objc_moveWeak(id *dest, id *src) { _objc_moveWeak(dest,src); } \
 void objc_release(id obj) { _objc_release(obj); } \
-void objc_delete_weak_refs(id obj) { _objc_delete_weak_refs(obj); } \
 unsigned long objc_arc_autorelease_count_np(void) { return _objc_arc_autorelease_count_np(); } \
 unsigned long objc_arc_autorelease_count_for_object_np(id obj) { return _objc_arc_autorelease_count_for_object_np(obj); }
 
 __setup_arc_hooks__;
 
+#define HAS_WEAK 0
+
+/*
+id objc_initWeak(id *object, id value) { return _objc_initWeak(object,value); } \
+id objc_loadWeak(id* object) { return _objc_loadWeak(object); } \
+id objc_loadWeakRetained(id* obj) { return _objc_loadWeakRetained(obj); } \
+id objc_storeWeak(id *addr, id obj) { return _objc_storeWeak(addr,obj); } \
+void objc_copyWeak(id *dest, id *src) { _objc_copyWeak(dest,src); } \
+void objc_destroyWeak(id* addr) { _objc_destroyWeak(addr); } \
+void objc_moveWeak(id *dest, id *src) { _objc_moveWeak(dest,src); } \
+void objc_delete_weak_refs(id obj) { _objc_delete_weak_refs(obj); } \
+*/
 
 /**
  * Returns the object if it is not currently in the process of being
@@ -347,7 +353,9 @@ static inline void release(id obj)
 		intptr_t *refCount = ((intptr_t*)obj) - 1;
 		if (__sync_sub_and_fetch(refCount, 1) < 0)
 		{
-			_objc_delete_weak_refs(obj);
+#if HAS_WEAK
+			objc_delete_weak_refs(obj);
+#endif
 			[obj dealloc];
 		}
 		return;
@@ -621,6 +629,7 @@ id _objc_storeStrong(id *addr, id value)
 	return value;
 }
 
+#if HAS_WEAK
 ////////////////////////////////////////////////////////////////////////////////
 // Weak references
 ////////////////////////////////////////////////////////////////////////////////
@@ -681,7 +690,7 @@ PRIVATE void init_arc(void)
 
 void* block_load_weak(void *block);
 
-id _objc_storeWeak(id *addr, id obj)
+id objc_storeWeak(id *addr, id obj)
 {
 	id old = *addr;
 	LOCK_FOR_SCOPE(&weakRefLock);
@@ -730,7 +739,7 @@ id _objc_storeWeak(id *addr, id obj)
 	}
 	else
 	{
-		obj = _objc_weak_load(obj);
+		obj = objc_weak_load(obj);
 	}
 	if (nil != obj)
 	{
@@ -792,7 +801,7 @@ static void zeroRefs(WeakRef *ref, BOOL shouldFree)
 	}
 }
 
-void _objc_delete_weak_refs(id obj)
+void objc_delete_weak_refs(id obj)
 {
 	LOCK_FOR_SCOPE(&weakRefLock);
 	WeakRef *oldRef = weak_ref_table_get(weakRefs, obj);
@@ -802,8 +811,9 @@ void _objc_delete_weak_refs(id obj)
 	}
 }
 
-id _objc_loadWeakRetained(id* addr)
+id objc_loadWeakRetained(id* addr)
 {
+    WEAKLOG("ARC _objc_loadWeakRetained");
 	LOCK_FOR_SCOPE(&weakRefLock);
 	id obj = *addr;
 	if (nil == obj) { return nil; }
@@ -821,22 +831,22 @@ id _objc_loadWeakRetained(id* addr)
 	}
 	else
 	{
-		obj = _objc_weak_load(obj);
+		obj = objc_weak_load(obj);
 	}
-	return _objc_retain(obj);
+	return objc_retain(obj);
 }
 
-id _objc_loadWeak(id* object)
+id objc_loadWeak(id* object)
 {
-	return _objc_autorelease(_objc_loadWeakRetained(object));
+	return objc_autorelease(objc_loadWeakRetained(object));
 }
 
-void _objc_copyWeak(id *dest, id *src)
+void objc_copyWeak(id *dest, id *src)
 {
-	_objc_release(_objc_initWeak(dest, _objc_loadWeakRetained(src)));
+	objc_release(_objc_initWeak(dest, _objc_loadWeakRetained(src)));
 }
 
-void _objc_moveWeak(id *dest, id *src)
+void objc_moveWeak(id *dest, id *src)
 {
 	// Don't retain or release.  While the weak ref lock is held, we know that
 	// the object can't be deallocated, so we just move the value and update
@@ -858,13 +868,16 @@ void _objc_moveWeak(id *dest, id *src)
 	}
 }
 
-void _objc_destroyWeak(id* obj)
+void objc_destroyWeak(id* obj)
 {
-	_objc_storeWeak(obj, nil);
+    WEAKLOG("ARC _objc_destroyWeak");
+	objc_storeWeak(obj, nil);
 }
 
-id _objc_initWeak(id *object, id value)
+id objc_initWeak(id *object, id value)
 {
 	*object = nil;
-	return _objc_storeWeak(object, value);
+	return objc_storeWeak(object, value);
 }
+
+#endif
