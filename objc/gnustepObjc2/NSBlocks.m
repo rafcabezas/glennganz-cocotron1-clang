@@ -6,6 +6,7 @@
 #include <assert.h>
 #import "../objc_class.h"
 
+#if 0
 struct objc_class _NSConcreteGlobalBlock;
 struct objc_class _NSConcreteStackBlock;
 struct objc_class _NSConcreteMallocBlock;
@@ -17,7 +18,6 @@ static struct objc_class _NSConcreteMallocBlockMeta;
 static struct objc_class _NSBlock;
 static struct objc_class _NSBlockMeta;
 
-#if 0
 static void createNSBlockSubclass(Class superclass, Class newClass,
 		Class metaClass, char *name)
 {

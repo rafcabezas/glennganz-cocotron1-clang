@@ -174,7 +174,7 @@ void _Block_object_assign(void *destAddr, const void *object, const int flags)
 			*dst = src;
 			if (!isGCEnabled)
 			{
-				*dst = objc_retain(src);
+				*dst = _objc_retain(src);
 			}
 		}
 	}
@@ -223,7 +223,7 @@ void _Block_object_dispose(const void *object, const int flags)
 			id src = (id)object;
 			if (!isGCEnabled)
 			{
-				objc_release(src);
+				_objc_release(src);
 			}
 		}
 	}
@@ -283,7 +283,7 @@ void _Block_release(void *src)
 		{
 			if(self->flags & BLOCK_HAS_COPY_DISPOSE)
 				self->descriptor->dispose_helper(self);
-			objc_delete_weak_refs((id)self);
+			//FIXME: disabled as we're not doing WEAK objc_delete_weak_refs((id)self);
 			gc->free(self);
 		}
 	}

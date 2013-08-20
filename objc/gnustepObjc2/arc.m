@@ -353,7 +353,7 @@ static inline void release(id obj)
 		intptr_t *refCount = ((intptr_t*)obj) - 1;
 		if (__sync_sub_and_fetch(refCount, 1) < 0)
 		{
-#if HAS_WEAK
+#if HAS_WEAK==1
 			objc_delete_weak_refs(obj);
 #endif
 			[obj dealloc];
@@ -629,7 +629,7 @@ id _objc_storeStrong(id *addr, id value)
 	return value;
 }
 
-#if HAS_WEAK
+#if HAS_WEAK==1
 ////////////////////////////////////////////////////////////////////////////////
 // Weak references
 ////////////////////////////////////////////////////////////////////////////////

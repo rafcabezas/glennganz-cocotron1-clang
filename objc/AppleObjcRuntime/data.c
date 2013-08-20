@@ -37,7 +37,7 @@ void * __attribute__((weak)) _NSConcreteFinalizingBlock[32] = { 0 };
 void * __attribute__((weak)) _NSConcreteGlobalBlock[32] = { 0 };
 void * __attribute__((weak)) _NSConcreteWeakBlockVariable[32] = { 0 };
 
-#if 0
+#if 1
 void _Block_copy_error(void) {
 }
 #endif

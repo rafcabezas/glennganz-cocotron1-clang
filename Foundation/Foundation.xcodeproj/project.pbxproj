@@ -31,10 +31,11 @@
 		05B010341749968D00A942DD /* Block.h in Headers */ = {isa = PBXBuildFile; fileRef = 05B0102E1749968D00A942DD /* Block.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		05B010351749968D00A942DD /* Block_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 05B0102F1749968D00A942DD /* Block_private.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		05B010361749968D00A942DD /* block_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 05B010301749968D00A942DD /* block_config.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		05B010391749968D00A942DD /* block_runtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B010331749968D00A942DD /* block_runtime.c */; };
 		05B0106D1749C24A00A942DD /* NSNumber_double_const.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27C0021090CC0500C44FD7 /* NSNumber_double_const.m */; };
 		05B01070174A650F00A942DD /* data.c in Sources */ = {isa = PBXBuildFile; fileRef = 05B0106F174A650F00A942DD /* data.c */; };
 		05B01088174C0FFA00A942DD /* objc_msgSend.x86-32.S in Sources */ = {isa = PBXBuildFile; fileRef = 05B01083174C001F00A942DD /* objc_msgSend.x86-32.S */; };
+		05CA999517C289400044CDDC /* blocks_runtime.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC221747F0B2002F3D5E /* blocks_runtime.m */; };
+		05CA999617C28B260044CDDC /* NSBlocks.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A5FC1D1747F095002F3D5E /* NSBlocks.m */; };
 		05CB3F811752D45A0043C09F /* alias_table.m in Sources */ = {isa = PBXBuildFile; fileRef = 05CB3F7F1752D45A0043C09F /* alias_table.m */; };
 		05CB3F821752D45A0043C09F /* alias.h in Headers */ = {isa = PBXBuildFile; fileRef = 05CB3F801752D45A0043C09F /* alias.h */; };
 		05CB3F851752D4980043C09F /* string_hash.h in Headers */ = {isa = PBXBuildFile; fileRef = 05CB3F841752D4980043C09F /* string_hash.h */; };
@@ -14687,11 +14688,12 @@
 				05A5FC2E1747F1A4002F3D5E /* arc.m in Sources */,
 				05A5FC4317488C6D002F3D5E /* mman.c in Sources */,
 				05A5FC4717488D86002F3D5E /* hash_table.c in Sources */,
-				05B010391749968D00A942DD /* block_runtime.c in Sources */,
 				05B0106D1749C24A00A942DD /* NSNumber_double_const.m in Sources */,
 				05B01070174A650F00A942DD /* data.c in Sources */,
 				05B01088174C0FFA00A942DD /* objc_msgSend.x86-32.S in Sources */,
 				05CB3F811752D45A0043C09F /* alias_table.m in Sources */,
+				05CA999517C289400044CDDC /* blocks_runtime.m in Sources */,
+				05CA999617C28B260044CDDC /* NSBlocks.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
