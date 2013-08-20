@@ -26,7 +26,6 @@ mkdir -p $downloadFolder
 for locationOfFile in $listOfFiles
 do
  nameOfFile=`basename $locationOfFile`
-
  if [ -f $downloadFolder/$nameOfFile ];then
   echo "No download needed for "$downloadFolder/$nameOfFile
  else
